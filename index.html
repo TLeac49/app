@@ -156,6 +156,24 @@
     .tab-indicator { position: absolute; top: 0; width: 32px; height: 2px; background: var(--accent2); border-radius: 0 0 2px 2px; opacity: 0; transition: opacity 0.2s; }
     .tab-item.active .tab-indicator { opacity: 1; }
 
+    /* ACTU MANAGEMENT */
+    .actu-manage-btn { position: absolute; top: 10px; right: 10px; background: transparent; border: none; color: var(--muted); font-size: 16px; cursor: pointer; padding: 2px 6px; border-radius: 6px; transition: color 0.2s; }
+    .actu-manage-btn:hover { color: var(--accent2); }
+    .actu-card { position: relative; }
+    .actu-add-btn { width: 100%; background: transparent; border: 1px dashed var(--border); border-radius: var(--radius); padding: 14px; font-family: var(--font-cond); font-size: 13px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); cursor: pointer; margin-top: 4px; margin-bottom: 16px; transition: border-color 0.2s, color 0.2s; display: none; }
+    .actu-add-btn:hover { border-color: var(--accent2); color: var(--accent2); }
+    .actu-add-btn.visible { display: block; }
+    /* MODAL */
+    .modal-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.7); z-index: 300; display: flex; align-items: flex-end; opacity: 0; pointer-events: none; transition: opacity 0.25s; }
+    .modal-overlay.show { opacity: 1; pointer-events: all; }
+    .modal-box { width: 100%; background: var(--surface); border-radius: 20px 20px 0 0; padding: 24px 20px 36px; transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.34,1.1,0.64,1); }
+    .modal-overlay.show .modal-box { transform: translateY(0); }
+    .modal-title { font-family: var(--font-cond); font-size: 18px; font-weight: 900; margin-bottom: 16px; }
+    .modal-actions { display: flex; gap: 8px; margin-top: 12px; }
+    .modal-save { flex: 2; background: var(--accent); color: #fff; border: none; border-radius: 10px; padding: 14px; font-family: var(--font-cond); font-size: 14px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; }
+    .modal-cancel { flex: 1; background: transparent; color: var(--muted); border: 1px solid var(--border); border-radius: 10px; padding: 14px; font-family: var(--font-cond); font-size: 14px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; }
+    .modal-delete { background: rgba(255,85,85,0.12); color: var(--danger); border: 1px solid rgba(255,85,85,0.2); border-radius: 10px; padding: 14px 16px; font-family: var(--font-cond); font-size: 14px; font-weight: 700; cursor: pointer; }
+
     @media print {
       body * { visibility: hidden; }
       #pdf-template, #pdf-template * { visibility: visible; }
@@ -187,41 +205,12 @@
         <div class="welcome-name">Salarié LEAC°</div>
         <div class="welcome-date" id="today-date">—</div>
       </div>
-      <div class="stats-row">
-        <div class="stat-card">
-          <div class="stat-label">Ce mois</div>
-          <div class="stat-value" id="stat-mois">—</div>
-          <div class="stat-unit">entretiens effectués</div>
-        </div>
-        <div class="stat-card">
-          <div class="stat-label">Total</div>
-          <div class="stat-value" id="stat-total">—</div>
-          <div class="stat-unit">fiches enregistrées</div>
-        </div>
-      </div>
+
       <div class="section-head"><span class="section-name">Actualités</span></div>
-      <div class="actu-list">
-        <div class="actu-card actu-annonce">
-          <div class="actu-header"><span class="actu-badge badge-annonce">📢 Annonce</span><span class="actu-date">05 mars 2026</span></div>
-          <div class="actu-title">Nouvelle procédure de signalement</div>
-          <div class="actu-body">À partir du 10 mars, toute panne doit être signalée via l'app avant d'appeler l'atelier.</div>
-        </div>
-        <div class="actu-card actu-meteo">
-          <div class="actu-header"><span class="actu-badge badge-meteo">🌦 Météo & Routes</span><span class="actu-date">05 mars 2026</span></div>
-          <div class="actu-title">Conditions dégradées — A6 Sud</div>
-          <div class="actu-body">Verglas signalé sur l'A6 entre Lyon et Mâcon. Vitesse limitée à 90 km/h.</div>
-        </div>
-        <div class="actu-card actu-rh">
-          <div class="actu-header"><span class="actu-badge badge-rh">👥 RH & Planning</span><span class="actu-date">03 mars 2026</span></div>
-          <div class="actu-title">Congés de printemps — rappel</div>
-          <div class="actu-body">Les demandes de congés pour avril doivent être soumises avant le 15 mars.</div>
-        </div>
-        <div class="actu-card actu-annonce">
-          <div class="actu-header"><span class="actu-badge badge-annonce">📢 Annonce</span><span class="actu-date">01 mars 2026</span></div>
-          <div class="actu-title">Réunion mensuelle — 12 mars</div>
-          <div class="actu-body">La réunion d'équipe aura lieu le jeudi 12 mars à 9h00 au dépôt.</div>
-        </div>
+      <div class="actu-list" id="actu-list">
+        <div class="loading-state"><div class="spinner"></div><div class="loading-text">Chargement…</div></div>
       </div>
+      <button class="actu-add-btn" id="actu-add-btn" onclick="openActuModal()">+ Ajouter une actualité</button>
     </div>
 
     <!-- ENTRETIEN -->
@@ -293,6 +282,36 @@
       </div>
     </div>
 
+  </div>
+
+  <!-- MODAL ACTUALITÉ -->
+  <div class="modal-overlay" id="actu-modal">
+    <div class="modal-box">
+      <div class="modal-title" id="modal-title">Nouvelle actualité</div>
+      <div class="form-section" style="margin-bottom:10px;">
+        <div class="field-row">
+          <label class="field-label">Catégorie</label>
+          <select class="field-input" id="modal-type">
+            <option value="annonce">📢 Annonce</option>
+            <option value="meteo">🌦 Météo & Routes</option>
+            <option value="rh">👥 RH & Planning</option>
+          </select>
+        </div>
+        <div class="field-row">
+          <label class="field-label">Titre</label>
+          <input class="field-input" type="text" id="modal-titre" placeholder="Titre de l'actualité"/>
+        </div>
+        <div class="field-row">
+          <label class="field-label">Message</label>
+          <textarea class="field-input" id="modal-body" placeholder="Contenu de l'annonce…" style="min-height:70px;"></textarea>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="modal-cancel" onclick="closeActuModal()">Annuler</button>
+        <button class="modal-delete" id="modal-delete-btn" onclick="deleteActu()" style="display:none;">🗑</button>
+        <button class="modal-save" onclick="saveActu()">Enregistrer</button>
+      </div>
+    </div>
   </div>
 
   <!-- TAB BAR -->
@@ -471,8 +490,7 @@
         const d2 = new Date(date);
         return d2.getMonth() === now.getMonth() && d2.getFullYear() === now.getFullYear();
       }).length;
-      document.getElementById('stat-total').textContent = total;
-      document.getElementById('stat-mois').textContent = mois;
+// stats removed
     }).catch(() => {});
   }
   loadStats();
@@ -485,7 +503,7 @@
       .then(snap => {
         allFiches = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         renderFiches();
-        document.getElementById('stat-total').textContent = allFiches.length;
+        // stats removed
       })
       .catch(e => {
         document.getElementById('fiches-list').innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-text">Erreur de chargement</div><div class="empty-sub">' + e.message + '</div></div>';
@@ -506,7 +524,6 @@
             <div class="fiche-meta">${f.date ? formatDate(f.date) : '—'} · ${f.fournisseur || '—'}</div>
           </div>
           <div class="fiche-actions">
-            <button class="fiche-pdf-btn" onclick="event.stopPropagation();exportPDF(${i})">⬇ PDF</button>
             <span class="fiche-chevron">▶</span>
           </div>
         </div>
@@ -525,46 +542,6 @@
 
   function toggleFiche(i) { document.getElementById('fiche-' + i).classList.toggle('open'); }
 
-  function exportPDF(i) {
-    const f = allFiches[i];
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
-    const bleu = [45,95,196], noir=[20,20,20], gris=[120,120,120], grisClair=[245,245,245];
-    doc.setFont('helvetica','bold'); doc.setFontSize(20); doc.setTextColor(...bleu);
-    doc.text('TRANSPORTS LEAC', 15, 17);
-    doc.setDrawColor(...bleu); doc.setLineWidth(0.8); doc.line(15,22,195,22);
-    doc.setFontSize(9); doc.setTextColor(...gris); doc.setFont('helvetica','normal');
-    doc.text("Fiche d'entretien semi-remorque", 15, 27);
-    doc.text('N ' + String(i+1).padStart(4,'0'), 195, 27, {align:'right'});
-    const fields = [
-      ['Nom', f.nom||'-'], ['Prenom', f.prenom||'-'], ['Date', f.date?formatDate(f.date):'-'],
-      ['Fournisseur', f.fournisseur||'-'], ['Temps passe', f.temps||'-'],
-      ['Envoyee le', f.envoi?.toDate ? f.envoi.toDate().toLocaleString('fr-FR') : '-']
-    ];
-    let y = 35;
-    fields.forEach(([label, value]) => {
-      doc.setFillColor(...grisClair); doc.rect(15,y,55,9,'F');
-      doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(...gris);
-      doc.text(label.toUpperCase(), 18, y+6);
-      doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(...noir);
-      doc.text(String(value), 73, y+6);
-      doc.setDrawColor(220,220,220); doc.line(15,y+9,195,y+9); y += 9;
-    });
-    y += 5;
-    doc.setFillColor(...grisClair); doc.rect(15,y,180,8,'F');
-    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(...gris);
-    doc.text('CAUSE DE LA REPARATION', 18, y+5.5); y += 10;
-    doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(...noir);
-    const lines = doc.splitTextToSize(f.cause||'-', 170);
-    const ch = Math.max(20, lines.length*6+8);
-    doc.setDrawColor(220,220,220); doc.rect(15,y,180,ch); doc.text(lines,18,y+7); y += ch+12;
-    doc.setDrawColor(...bleu); doc.line(15,y,80,y); doc.line(115,y,180,y);
-    doc.setFontSize(8); doc.setTextColor(...gris);
-    doc.text('Signature salarie', 15, y+5); doc.text('Signature responsable', 115, y+5);
-    doc.setFontSize(8); doc.setTextColor(...gris);
-    doc.text('Transports LEAC - Document genere automatiquement', 105, 285, {align:'center'});
-    doc.save('fiche-' + (f.prenom||'') + '-' + (f.nom||'') + '-' + (f.date||'') + '.pdf');
-  }
 
   function exportCSV() {
     if (!allFiches.length) { showToast('Aucune fiche à exporter', 'error'); return; }
@@ -582,6 +559,93 @@
     const p = d.split('-');
     return p.length===3 ? p[2]+'/'+p[1]+'/'+p[0] : d;
   }
+
+  // ── ACTUALITÉS ──
+  const ACTU_TYPES = {
+    annonce: { label: '📢 Annonce', cls: 'actu-annonce', badge: 'badge-annonce' },
+    meteo:   { label: '🌦 Météo & Routes', cls: 'actu-meteo', badge: 'badge-meteo' },
+    rh:      { label: '👥 RH & Planning', cls: 'actu-rh', badge: 'badge-rh' }
+  };
+  let currentActuId = null;
+
+  function loadActus() {
+    db.collection('actus').orderBy('date','desc').get()
+      .then(snap => {
+        const actus = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        renderActus(actus);
+      })
+      .catch(() => renderActus([]));
+  }
+
+  function renderActus(actus) {
+    const list = document.getElementById('actu-list');
+    const isResp = !!firebase.auth().currentUser;
+    if (!actus.length) {
+      list.innerHTML = '<div class="empty-state"><div class="empty-icon">📰</div><div class="empty-text">Aucune actualité</div></div>';
+    } else {
+      list.innerHTML = actus.map(a => {
+        const t = ACTU_TYPES[a.type] || ACTU_TYPES.annonce;
+        const dateStr = a.date?.toDate ? a.date.toDate().toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'}) : '—';
+        return `<div class="actu-card ${t.cls}">
+          ${isResp ? `<button class="actu-manage-btn" onclick="openActuModal('${a.id}','${a.type}',this)">✏️</button>` : ''}
+          <div class="actu-header"><span class="actu-badge ${t.badge}">${t.label}</span><span class="actu-date">${dateStr}</span></div>
+          <div class="actu-title">${a.titre||''}</div>
+          <div class="actu-body">${a.body||''}</div>
+        </div>`;
+      }).join('');
+    }
+  }
+
+  function openActuModal(id, type, btn) {
+    currentActuId = id || null;
+    const isEdit = !!id;
+    document.getElementById('modal-title').textContent = isEdit ? 'Modifier l'actualité' : 'Nouvelle actualité';
+    document.getElementById('modal-delete-btn').style.display = isEdit ? 'block' : 'none';
+    if (isEdit) {
+      const card = btn.closest('.actu-card');
+      document.getElementById('modal-type').value = type;
+      document.getElementById('modal-titre').value = card.querySelector('.actu-title').textContent;
+      document.getElementById('modal-body').value = card.querySelector('.actu-body').textContent;
+    } else {
+      document.getElementById('modal-type').value = 'annonce';
+      document.getElementById('modal-titre').value = '';
+      document.getElementById('modal-body').value = '';
+    }
+    document.getElementById('actu-modal').classList.add('show');
+  }
+
+  function closeActuModal() {
+    document.getElementById('actu-modal').classList.remove('show');
+    currentActuId = null;
+  }
+
+  function saveActu() {
+    const type = document.getElementById('modal-type').value;
+    const titre = document.getElementById('modal-titre').value.trim();
+    const body = document.getElementById('modal-body').value.trim();
+    if (!titre || !body) { showToast('⚠ Remplissez tous les champs', 'error'); return; }
+    const data = { type, titre, body, date: firebase.firestore.FieldValue.serverTimestamp() };
+    const p = currentActuId
+      ? db.collection('actus').doc(currentActuId).update(data)
+      : db.collection('actus').add(data);
+    p.then(() => { closeActuModal(); loadActus(); showToast('✓ Actualité enregistrée', 'success'); })
+     .catch(e => showToast('Erreur : ' + e.message, 'error'));
+  }
+
+  function deleteActu() {
+    if (!currentActuId) return;
+    db.collection('actus').doc(currentActuId).delete()
+      .then(() => { closeActuModal(); loadActus(); showToast('🗑 Actualité supprimée', 'success'); })
+      .catch(e => showToast('Erreur : ' + e.message, 'error'));
+  }
+
+  // Close modal on overlay click
+  document.getElementById('actu-modal').addEventListener('click', function(e) {
+    if (e.target === this) closeActuModal();
+  });
+
+  // Load actus on init
+  loadActus();
 </script>
 </body>
 </html>
