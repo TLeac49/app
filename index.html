@@ -5,6 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
   <title>Transports LEAC°</title>
   <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;900&family=Barlow+Condensed:wght@400;600;700;900&display=swap" rel="stylesheet"/>
+
+  <!-- Firebase compat (fonctionne sans module) -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
     :root {
@@ -20,13 +26,11 @@
     .app { width: 100%; max-width: 430px; height: 100vh; max-height: 932px; background: var(--bg); position: relative; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 0 80px rgba(0,0,0,0.8); }
 
     /* HEADER */
-    .app-header { background: var(--bg); padding: 14px 20px 14px; flex-shrink: 0; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
-    .logo-wrap {}
+    .app-header { background: var(--bg); padding: 14px 20px; flex-shrink: 0; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; }
     .logo-text { font-family: var(--font-cond); font-size: 22px; font-weight: 900; letter-spacing: 0.05em; text-transform: uppercase; }
     .logo-degree { color: var(--accent2); }
     .logo-sub { font-family: var(--font-cond); font-size: 10px; font-weight: 600; color: var(--muted); letter-spacing: 0.2em; text-transform: uppercase; display: block; margin-top: -2px; }
-    .header-right { display: flex; align-items: center; gap: 10px; }
-    .resp-btn { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; color: var(--muted); font-family: var(--font-cond); font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 6px 12px; cursor: pointer; transition: border-color 0.2s, color 0.2s; }
+    .resp-btn { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; color: var(--muted); font-family: var(--font-cond); font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 6px 12px; cursor: pointer; transition: all 0.2s; }
     .resp-btn:hover { border-color: var(--accent2); color: var(--accent2); }
     .resp-btn.active-mode { background: var(--accent-dim); border-color: var(--accent2); color: var(--accent2); }
 
@@ -50,18 +54,14 @@
     .stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
     .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
     .stat-label { font-size: 11px; color: var(--muted); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 8px; }
-    .stat-value { font-family: var(--font-cond); font-size: 32px; font-weight: 900; line-height: 1; }
-    .stat-value.orange { color: var(--accent2); }
-    .stat-value.blue { color: var(--accent2); }
+    .stat-value { font-family: var(--font-cond); font-size: 32px; font-weight: 900; line-height: 1; color: var(--accent2); }
     .stat-unit { font-size: 12px; color: var(--muted); margin-top: 4px; }
 
-    /* RECENT */
-    .section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
-    .section-name { font-family: var(--font-cond); font-size: 14px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
-
     /* ACTUALITÉS */
+    .section-head { margin-bottom: 12px; }
+    .section-name { font-family: var(--font-cond); font-size: 14px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
     .actu-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
-    .actu-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; border-left: 3px solid var(--border); }
+    .actu-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; border-left: 3px solid; }
     .actu-annonce { border-left-color: var(--accent2); }
     .actu-meteo { border-left-color: #3ddc84; }
     .actu-rh { border-left-color: #b97fff; }
@@ -71,10 +71,8 @@
     .badge-meteo { background: rgba(61,220,132,0.12); color: #3ddc84; }
     .badge-rh { background: rgba(185,127,255,0.12); color: #b97fff; }
     .actu-date { font-size: 11px; color: var(--muted); font-family: var(--font-cond); }
-    .actu-title { font-size: 14px; font-weight: 700; margin-bottom: 6px; color: var(--text); }
+    .actu-title { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
     .actu-body { font-size: 12px; color: var(--muted); line-height: 1.6; }
-    .quick-btn { width: 100%; background: var(--accent); color: #fff; border: none; border-radius: var(--radius); padding: 16px; font-family: var(--font-cond); font-size: 16px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 20px; transition: opacity 0.15s; }
-    .quick-btn:active { opacity: 0.8; }
 
     /* FORM */
     .form-header { margin-bottom: 24px; }
@@ -85,57 +83,59 @@
     .form-section-label { font-family: var(--font-cond); font-size: 11px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); padding: 12px 16px 8px; border-bottom: 1px solid var(--border); background: var(--surface2); }
     .field-row { padding: 0 16px; border-bottom: 1px solid var(--border); }
     .field-row:last-child { border-bottom: none; }
-    .field-row:focus-within { background: rgba(232,160,32,0.03); }
+    .field-row:focus-within { background: rgba(45,95,196,0.04); }
     .field-label { font-size: 11px; font-weight: 600; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; padding-top: 12px; display: block; margin-bottom: 4px; }
     .field-row:focus-within .field-label { color: var(--accent2); }
-    .field-input { width: 100%; background: transparent; border: none; outline: none; font-family: var(--font); font-size: 15px; font-weight: 500; color: var(--text); padding: 0 0 12px; caret-color: var(--accent); }
+    .field-input { width: 100%; background: transparent; border: none; outline: none; font-family: var(--font); font-size: 15px; font-weight: 500; color: var(--text); padding: 0 0 12px; caret-color: var(--accent2); }
     .field-input::placeholder { color: var(--border); }
     select.field-input { appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237a7f8e' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 0 center; padding-right: 20px; cursor: pointer; }
     textarea.field-input { resize: none; min-height: 80px; line-height: 1.5; }
-    .submit-btn { width: 100%; background: var(--accent); color: #fff; border: none; border-radius: var(--radius); padding: 18px; font-family: var(--font-cond); font-size: 17px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 8px; transition: opacity 0.15s; }    .submit-btn:active, .submit-btn:disabled { opacity: 0.6; }
-    .submit-btn:disabled { cursor: not-allowed; }
+    .submit-btn { width: 100%; background: var(--accent); color: #fff; border: none; border-radius: var(--radius); padding: 18px; font-family: var(--font-cond); font-size: 17px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 8px; transition: opacity 0.15s; }
+    .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
     .reset-btn { width: 100%; background: transparent; color: var(--muted); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; font-family: var(--font-cond); font-size: 14px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; margin-bottom: 20px; }
-    .reset-btn:active { border-color: var(--muted); color: var(--text); }
 
-    /* RESPONSABLE PAGE */
-    .resp-header { margin-bottom: 20px; }
+    /* LOGIN */
+    .login-wrap { display: flex; flex-direction: column; justify-content: center; min-height: 100%; padding: 20px 0; }
+    .login-box { background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 28px 24px; }
+    .login-logo { text-align: center; margin-bottom: 24px; }
+    .login-title { font-family: var(--font-cond); font-size: 22px; font-weight: 900; letter-spacing: 0.05em; text-transform: uppercase; }
+    .login-sub { font-size: 13px; color: var(--muted); margin-top: 4px; }
+    .login-error { background: rgba(255,85,85,0.1); border: 1px solid rgba(255,85,85,0.3); color: var(--danger); font-size: 13px; padding: 10px 14px; border-radius: 8px; margin-bottom: 16px; display: none; }
+    .login-error.show { display: block; }
+
+    /* RESPONSABLE */
     .resp-title { font-family: var(--font-cond); font-size: 28px; font-weight: 900; margin-bottom: 4px; }
-    .resp-subtitle { font-size: 13px; color: var(--muted); }
-    .resp-toolbar { display: flex; gap: 8px; margin-bottom: 16px; }
-    .tool-btn { flex: 1; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; color: var(--muted); font-family: var(--font-cond); font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 10px 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
+    .resp-subtitle { font-size: 13px; color: var(--muted); margin-bottom: 16px; }
+    .resp-toolbar { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+    .tool-btn { flex: 1; min-width: 80px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; color: var(--muted); font-family: var(--font-cond); font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 10px 8px; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 4px; }
     .tool-btn:hover { border-color: var(--accent2); color: var(--accent2); }
-    .tool-btn.green:hover { border-color: var(--success); color: var(--success); }
+    .tool-btn.danger:hover { border-color: var(--danger); color: var(--danger); }
 
-    /* FICHES LIST */
+    /* FICHES */
     .fiches-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
     .fiche-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
     .fiche-card-head { padding: 14px 16px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; }
     .fiche-card-head:active { background: var(--surface2); }
-    .fiche-info {}
     .fiche-name { font-size: 15px; font-weight: 700; margin-bottom: 2px; }
     .fiche-meta { font-size: 12px; color: var(--muted); }
-    .fiche-actions { display: flex; align-items: center; gap: 8px; }
-    .fiche-pdf-btn { background: var(--accent-dim); border: 1px solid rgba(45,95,196,0.35); color: var(--accent2); font-family: var(--font-cond); font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; padding: 5px 10px; border-radius: 6px; cursor: pointer; transition: opacity 0.15s; white-space: nowrap; }
-    .fiche-pdf-btn:active { opacity: 0.7; }
+    .fiche-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+    .fiche-pdf-btn { background: var(--accent-dim); border: 1px solid rgba(45,95,196,0.35); color: var(--accent2); font-family: var(--font-cond); font-size: 11px; font-weight: 700; padding: 5px 10px; border-radius: 6px; cursor: pointer; white-space: nowrap; }
     .fiche-chevron { color: var(--muted); font-size: 12px; transition: transform 0.2s; }
     .fiche-card.open .fiche-chevron { transform: rotate(90deg); }
-    .fiche-detail { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; border-top: 0px solid var(--border); }
-    .fiche-card.open .fiche-detail { max-height: 300px; border-top-width: 1px; }
+    .fiche-detail { max-height: 0; overflow: hidden; transition: max-height 0.3s ease; }
+    .fiche-card.open .fiche-detail { max-height: 300px; border-top: 1px solid var(--border); }
     .fiche-detail-inner { padding: 14px 16px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-    .fiche-field {}
     .fiche-field-label { font-size: 10px; font-weight: 700; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 2px; }
-    .fiche-field-value { font-size: 13px; font-weight: 500; color: var(--text); }
-    .fiche-field.full { grid-column: 1 / -1; }
+    .fiche-field-value { font-size: 13px; font-weight: 500; }
+    .fiche-field-full { grid-column: 1 / -1; }
 
-    /* EMPTY STATE */
+    /* LOADING / EMPTY */
     .empty-state { text-align: center; padding: 40px 20px; }
     .empty-icon { font-size: 48px; margin-bottom: 12px; opacity: 0.4; }
     .empty-text { font-family: var(--font-cond); font-size: 16px; font-weight: 700; color: var(--muted); margin-bottom: 4px; }
     .empty-sub { font-size: 13px; color: var(--muted); opacity: 0.6; }
-
-    /* LOADING */
     .loading-state { text-align: center; padding: 40px 20px; }
-    .spinner { width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.7s linear infinite; margin: 0 auto 12px; }
+    .spinner { width: 32px; height: 32px; border: 3px solid var(--border); border-top-color: var(--accent2); border-radius: 50%; animation: spin 0.7s linear infinite; margin: 0 auto 12px; }
     @keyframes spin { to { transform: rotate(360deg); } }
     .loading-text { font-family: var(--font-cond); font-size: 13px; color: var(--muted); letter-spacing: 0.1em; text-transform: uppercase; }
 
@@ -145,9 +145,9 @@
     .toast.error { background: var(--danger); color: #fff; box-shadow: 0 4px 24px rgba(255,85,85,0.3); }
     .toast.show { transform: translateX(-50%) translateY(0); }
 
-    /* TAB BAR */
+    /* TABS */
     .tab-bar { height: var(--tab-h); background: var(--surface); border-top: 1px solid var(--border); display: flex; flex-shrink: 0; z-index: 10; }
-    .tab-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: pointer; border: none; background: transparent; padding: 0; position: relative; transition: opacity 0.15s; }
+    .tab-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: pointer; border: none; background: transparent; padding: 0; position: relative; }
     .tab-item:active { opacity: 0.7; }
     .tab-icon { font-size: 22px; line-height: 1; transition: transform 0.2s; }
     .tab-label { font-family: var(--font-cond); font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); transition: color 0.2s; }
@@ -156,7 +156,6 @@
     .tab-indicator { position: absolute; top: 0; width: 32px; height: 2px; background: var(--accent2); border-radius: 0 0 2px 2px; opacity: 0; transition: opacity 0.2s; }
     .tab-item.active .tab-indicator { opacity: 1; }
 
-    /* PDF PRINT */
     @media print {
       body * { visibility: hidden; }
       #pdf-template, #pdf-template * { visibility: visible; }
@@ -167,22 +166,20 @@
 <body>
 <div class="app">
 
-  <div class="toast success" id="toast"></div>
+  <div class="toast" id="toast"></div>
 
   <!-- HEADER -->
   <div class="app-header">
-    <div class="logo-wrap">
+    <div>
       <span class="logo-text">Transports LEAC<span class="logo-degree">°</span></span>
       <span class="logo-sub">Gestion flotte &amp; maintenance</span>
     </div>
-    <div class="header-right">
-      <button class="resp-btn" id="resp-toggle-btn" onclick="toggleResponsable()">👔 Responsable</button>
-    </div>
+    <button class="resp-btn" id="resp-toggle-btn" onclick="toggleResponsable()">👔 Responsable</button>
   </div>
 
   <div class="pages">
 
-    <!-- PAGE ACCUEIL -->
+    <!-- ACCUEIL -->
     <div class="page active" id="page-accueil">
       <div class="page-title">Tableau de bord</div>
       <div class="welcome-card">
@@ -193,61 +190,41 @@
       <div class="stats-row">
         <div class="stat-card">
           <div class="stat-label">Ce mois</div>
-          <div class="stat-value orange" id="stat-mois">—</div>
+          <div class="stat-value" id="stat-mois">—</div>
           <div class="stat-unit">entretiens effectués</div>
         </div>
         <div class="stat-card">
           <div class="stat-label">Total</div>
-          <div class="stat-value blue" id="stat-total">—</div>
+          <div class="stat-value" id="stat-total">—</div>
           <div class="stat-unit">fiches enregistrées</div>
         </div>
       </div>
-      <div class="section-head">
-        <span class="section-name">Actualités</span>
-      </div>
+      <div class="section-head"><span class="section-name">Actualités</span></div>
       <div class="actu-list">
-
         <div class="actu-card actu-annonce">
-          <div class="actu-header">
-            <span class="actu-badge badge-annonce">📢 Annonce</span>
-            <span class="actu-date">05 mars 2026</span>
-          </div>
+          <div class="actu-header"><span class="actu-badge badge-annonce">📢 Annonce</span><span class="actu-date">05 mars 2026</span></div>
           <div class="actu-title">Nouvelle procédure de signalement</div>
-          <div class="actu-body">À partir du 10 mars, toute panne doit être signalée via l'app avant d'appeler l'atelier. Merci de bien remplir la fiche entretien.</div>
+          <div class="actu-body">À partir du 10 mars, toute panne doit être signalée via l'app avant d'appeler l'atelier.</div>
         </div>
-
         <div class="actu-card actu-meteo">
-          <div class="actu-header">
-            <span class="actu-badge badge-meteo">🌦 Météo & Routes</span>
-            <span class="actu-date">05 mars 2026</span>
-          </div>
+          <div class="actu-header"><span class="actu-badge badge-meteo">🌦 Météo & Routes</span><span class="actu-date">05 mars 2026</span></div>
           <div class="actu-title">Conditions dégradées — A6 Sud</div>
-          <div class="actu-body">Verglas signalé sur l'A6 entre Lyon et Mâcon. Vitesse limitée à 90 km/h. Prévoir un délai supplémentaire sur les tournées concernées.</div>
+          <div class="actu-body">Verglas signalé sur l'A6 entre Lyon et Mâcon. Vitesse limitée à 90 km/h.</div>
         </div>
-
         <div class="actu-card actu-rh">
-          <div class="actu-header">
-            <span class="actu-badge badge-rh">👥 RH & Planning</span>
-            <span class="actu-date">03 mars 2026</span>
-          </div>
+          <div class="actu-header"><span class="actu-badge badge-rh">👥 RH & Planning</span><span class="actu-date">03 mars 2026</span></div>
           <div class="actu-title">Congés de printemps — rappel</div>
-          <div class="actu-body">Les demandes de congés pour avril doivent être soumises avant le 15 mars auprès de votre responsable. Planning mis à jour sous 48h.</div>
+          <div class="actu-body">Les demandes de congés pour avril doivent être soumises avant le 15 mars.</div>
         </div>
-
         <div class="actu-card actu-annonce">
-          <div class="actu-header">
-            <span class="actu-badge badge-annonce">📢 Annonce</span>
-            <span class="actu-date">01 mars 2026</span>
-          </div>
+          <div class="actu-header"><span class="actu-badge badge-annonce">📢 Annonce</span><span class="actu-date">01 mars 2026</span></div>
           <div class="actu-title">Réunion mensuelle — 12 mars</div>
-          <div class="actu-body">La réunion d'équipe aura lieu le jeudi 12 mars à 9h00 au dépôt. Présence obligatoire pour tous les chauffeurs et mécaniciens.</div>
+          <div class="actu-body">La réunion d'équipe aura lieu le jeudi 12 mars à 9h00 au dépôt.</div>
         </div>
-
       </div>
-
     </div>
 
-    <!-- PAGE ENTRETIEN -->
+    <!-- ENTRETIEN -->
     <div class="page" id="page-entretien">
       <div class="form-header">
         <div class="form-tag">📋 Semi-remorque</div>
@@ -257,58 +234,59 @@
       <form id="entretien-form" onsubmit="return false;">
         <div class="form-section">
           <div class="form-section-label">Identité du salarié</div>
-          <div class="field-row">
-            <label class="field-label">Nom</label>
-            <input class="field-input" type="text" placeholder="Nom de famille" id="f-nom"/>
-          </div>
-          <div class="field-row">
-            <label class="field-label">Prénom</label>
-            <input class="field-input" type="text" placeholder="Prénom" id="f-prenom"/>
-          </div>
+          <div class="field-row"><label class="field-label">Nom</label><input class="field-input" type="text" placeholder="Nom de famille" id="f-nom"/></div>
+          <div class="field-row"><label class="field-label">Prénom</label><input class="field-input" type="text" placeholder="Prénom" id="f-prenom"/></div>
         </div>
         <div class="form-section">
           <div class="form-section-label">Informations intervention</div>
-          <div class="field-row">
-            <label class="field-label">Date</label>
-            <input class="field-input" type="date" id="f-date"/>
-          </div>
-          <div class="field-row">
-            <label class="field-label">Fournisseur</label>
-            <input class="field-input" type="text" placeholder="Ex : Renault Trucks, Bridgestone…" id="f-fournisseur"/>
-          </div>
+          <div class="field-row"><label class="field-label">Date</label><input class="field-input" type="date" id="f-date"/></div>
+          <div class="field-row"><label class="field-label">Fournisseur</label><input class="field-input" type="text" placeholder="Ex : Renault Trucks, Bridgestone…" id="f-fournisseur"/></div>
           <div class="field-row">
             <label class="field-label">Temps passé</label>
             <select class="field-input" id="f-temps">
               <option value="" disabled selected>Sélectionner une durée</option>
-              <option>30 min</option><option>1h</option><option>1h30</option>
-              <option>2h</option><option>2h30</option><option>3h</option>
-              <option>4h</option><option>5h</option><option>6h et +</option>
-              <option>Journée complète</option>
+              <option>30 min</option><option>1h</option><option>1h30</option><option>2h</option>
+              <option>2h30</option><option>3h</option><option>4h</option><option>5h</option>
+              <option>6h et +</option><option>Journée complète</option>
             </select>
           </div>
         </div>
         <div class="form-section">
           <div class="form-section-label">Détail de la réparation</div>
-          <div class="field-row">
-            <label class="field-label">Cause de la réparation</label>
-            <textarea class="field-input" placeholder="Décrivez la panne ou la raison de l'entretien…" id="f-cause"></textarea>
-          </div>
+          <div class="field-row"><label class="field-label">Cause de la réparation</label><textarea class="field-input" placeholder="Décrivez la panne ou la raison de l'entretien…" id="f-cause"></textarea></div>
         </div>
         <button type="button" class="submit-btn" id="submit-btn">✓ Envoyer la fiche</button>
         <button type="reset" class="reset-btn" id="reset-btn">Effacer le formulaire</button>
       </form>
     </div>
 
-    <!-- PAGE RESPONSABLE -->
-    <div class="page" id="page-responsable">
-      <div class="resp-header">
-        <div class="form-tag">👔 Accès responsable</div>
-        <div class="resp-title">Toutes les fiches</div>
-        <div class="resp-subtitle">Consultez et téléchargez les fiches d'entretien</div>
+    <!-- LOGIN -->
+    <div class="page" id="page-login">
+      <div class="login-wrap">
+        <div class="login-box">
+          <div class="login-logo">
+            <div class="login-title">Transports LEAC<span style="color:var(--accent2)">°</span></div>
+            <div class="login-sub">Espace responsable</div>
+          </div>
+          <div class="login-error" id="login-error">Email ou mot de passe incorrect.</div>
+          <div class="form-section" style="margin-bottom:12px;">
+            <div class="field-row"><label class="field-label">Email</label><input class="field-input" type="email" placeholder="votre@email.com" id="login-email"/></div>
+            <div class="field-row"><label class="field-label">Mot de passe</label><input class="field-input" type="password" placeholder="••••••••" id="login-pass" onkeydown="if(event.key==='Enter') doLogin()"/></div>
+          </div>
+          <button class="submit-btn" id="login-btn" onclick="doLogin()">Se connecter</button>
+        </div>
       </div>
+    </div>
+
+    <!-- RESPONSABLE -->
+    <div class="page" id="page-responsable">
+      <div class="form-tag">👔 Accès responsable</div>
+      <div class="resp-title">Toutes les fiches</div>
+      <div class="resp-subtitle">Consultez et téléchargez les fiches d'entretien</div>
       <div class="resp-toolbar">
         <button class="tool-btn" onclick="loadFiches()">🔄 Actualiser</button>
-        <button class="tool-btn green" onclick="exportAllCSV()">📥 Export CSV</button>
+        <button class="tool-btn" onclick="exportCSV()">📥 CSV</button>
+        <button class="tool-btn danger" onclick="doLogout()">🔓 Déco.</button>
       </div>
       <div class="fiches-list" id="fiches-list">
         <div class="loading-state"><div class="spinner"></div><div class="loading-text">Chargement…</div></div>
@@ -320,132 +298,137 @@
   <!-- TAB BAR -->
   <div class="tab-bar">
     <button class="tab-item active" id="tab-accueil" onclick="navigate('accueil')">
-      <div class="tab-indicator"></div>
-      <span class="tab-icon">🏠</span>
-      <span class="tab-label">Accueil</span>
+      <div class="tab-indicator"></div><span class="tab-icon">🏠</span><span class="tab-label">Accueil</span>
     </button>
     <button class="tab-item" id="tab-entretien" onclick="navigate('entretien')">
-      <div class="tab-indicator"></div>
-      <span class="tab-icon">🔧</span>
-      <span class="tab-label">Entretien</span>
+      <div class="tab-indicator"></div><span class="tab-icon">🔧</span><span class="tab-label">Entretien</span>
     </button>
     <button class="tab-item" id="tab-responsable" style="display:none;" onclick="navigate('responsable')">
-      <div class="tab-indicator"></div>
-      <span class="tab-icon">👔</span>
-      <span class="tab-label">Fiches</span>
+      <div class="tab-indicator"></div><span class="tab-icon">👔</span><span class="tab-label">Fiches</span>
     </button>
   </div>
 </div>
 
-<!-- PDF TEMPLATE (hidden) -->
-<div id="pdf-template" style="display:none; position:fixed; inset:0; background:white; color:#000; padding:40px; font-family:Arial,sans-serif; z-index:9999;">
-  <div style="border-bottom: 3px solid #2d5fc4; padding-bottom: 16px; margin-bottom: 24px; display:flex; justify-content:space-between; align-items:flex-end;">
-    <div>
-      <div style="font-size:24px; font-weight:900; letter-spacing:2px; text-transform:uppercase;">TRANSPORTS LEAC°</div>
-      <div style="font-size:12px; color:#888; letter-spacing:2px; text-transform:uppercase; margin-top:2px;">Fiche d'entretien semi-remorque</div>
-    </div>
-    <div style="text-align:right; font-size:12px; color:#888;">N° <span id="pdf-num"></span></div>
+<!-- PDF -->
+<div id="pdf-template" style="display:none;position:fixed;inset:0;background:white;color:#000;padding:40px;font-family:Arial,sans-serif;z-index:9999;">
+  <div style="border-bottom:3px solid #2d5fc4;padding-bottom:16px;margin-bottom:24px;display:flex;justify-content:space-between;align-items:flex-end;">
+    <div><div style="font-size:24px;font-weight:900;letter-spacing:2px;text-transform:uppercase;">TRANSPORTS LEAC°</div><div style="font-size:12px;color:#888;letter-spacing:2px;text-transform:uppercase;margin-top:2px;">Fiche d'entretien semi-remorque</div></div>
+    <div style="font-size:12px;color:#888;">N° <span id="pdf-num"></span></div>
   </div>
-  <table style="width:100%; border-collapse:collapse; font-size:14px;">
-    <tr>
-      <td style="padding:10px 12px; background:#f5f5f5; font-weight:700; font-size:11px; text-transform:uppercase; letter-spacing:1px; color:#888; width:35%;">Nom du salarié</td>
-      <td style="padding:10px 12px; border-bottom:1px solid #eee;" id="pdf-nom"></td>
-    </tr>
-    <tr>
-      <td style="padding:10px 12px; background:#f5f5f5; font-weight:700; font-size:11px; text-transform:uppercase; letter-spacing:1px; color:#888;">Prénom</td>
-      <td style="padding:10px 12px; border-bottom:1px solid #eee;" id="pdf-prenom"></td>
-    </tr>
-    <tr>
-      <td style="padding:10px 12px; background:#f5f5f5; font-weight:700; font-size:11px; text-transform:uppercase; letter-spacing:1px; color:#888;">Date</td>
-      <td style="padding:10px 12px; border-bottom:1px solid #eee;" id="pdf-date"></td>
-    </tr>
-    <tr>
-      <td style="padding:10px 12px; background:#f5f5f5; font-weight:700; font-size:11px; text-transform:uppercase; letter-spacing:1px; color:#888;">Fournisseur</td>
-      <td style="padding:10px 12px; border-bottom:1px solid #eee;" id="pdf-fournisseur"></td>
-    </tr>
-    <tr>
-      <td style="padding:10px 12px; background:#f5f5f5; font-weight:700; font-size:11px; text-transform:uppercase; letter-spacing:1px; color:#888;">Temps passé</td>
-      <td style="padding:10px 12px; border-bottom:1px solid #eee;" id="pdf-temps"></td>
-    </tr>
-    <tr>
-      <td style="padding:10px 12px; background:#f5f5f5; font-weight:700; font-size:11px; text-transform:uppercase; letter-spacing:1px; color:#888; vertical-align:top;">Cause de la réparation</td>
-      <td style="padding:10px 12px; border-bottom:1px solid #eee; line-height:1.6;" id="pdf-cause"></td>
-    </tr>
-    <tr>
-      <td style="padding:10px 12px; background:#f5f5f5; font-weight:700; font-size:11px; text-transform:uppercase; letter-spacing:1px; color:#888;">Envoyée le</td>
-      <td style="padding:10px 12px;" id="pdf-envoi"></td>
-    </tr>
+  <table style="width:100%;border-collapse:collapse;font-size:14px;">
+    <tr><td style="padding:10px 12px;background:#f5f5f5;font-weight:700;font-size:11px;text-transform:uppercase;color:#888;width:35%;">Nom</td><td style="padding:10px 12px;border-bottom:1px solid #eee;" id="pdf-nom"></td></tr>
+    <tr><td style="padding:10px 12px;background:#f5f5f5;font-weight:700;font-size:11px;text-transform:uppercase;color:#888;">Prénom</td><td style="padding:10px 12px;border-bottom:1px solid #eee;" id="pdf-prenom"></td></tr>
+    <tr><td style="padding:10px 12px;background:#f5f5f5;font-weight:700;font-size:11px;text-transform:uppercase;color:#888;">Date</td><td style="padding:10px 12px;border-bottom:1px solid #eee;" id="pdf-date"></td></tr>
+    <tr><td style="padding:10px 12px;background:#f5f5f5;font-weight:700;font-size:11px;text-transform:uppercase;color:#888;">Fournisseur</td><td style="padding:10px 12px;border-bottom:1px solid #eee;" id="pdf-fournisseur"></td></tr>
+    <tr><td style="padding:10px 12px;background:#f5f5f5;font-weight:700;font-size:11px;text-transform:uppercase;color:#888;">Temps passé</td><td style="padding:10px 12px;border-bottom:1px solid #eee;" id="pdf-temps"></td></tr>
+    <tr><td style="padding:10px 12px;background:#f5f5f5;font-weight:700;font-size:11px;text-transform:uppercase;color:#888;vertical-align:top;">Cause</td><td style="padding:10px 12px;border-bottom:1px solid #eee;line-height:1.6;" id="pdf-cause"></td></tr>
+    <tr><td style="padding:10px 12px;background:#f5f5f5;font-weight:700;font-size:11px;text-transform:uppercase;color:#888;">Envoyée le</td><td style="padding:10px 12px;" id="pdf-envoi"></td></tr>
   </table>
-  <div style="margin-top:40px; padding-top:16px; border-top:1px solid #eee; font-size:11px; color:#aaa; text-align:center;">
-    Transports LEAC° — Document généré automatiquement
-  </div>
+  <div style="margin-top:40px;padding-top:16px;border-top:1px solid #eee;font-size:11px;color:#aaa;text-align:center;">Transports LEAC° — Document généré automatiquement</div>
 </div>
 
 <script>
-  const SHEET_URL = 'https://script.google.com/a/macros/transportsleac.com/s/AKfycbxZFQAf5RAWxHZbjFgxsux5p_OZvn-HTRysQns600vevQSFiY-GhGs1-iydwukdCFam/exec';
+  // ── FIREBASE INIT ──
+  const firebaseConfig = {
+    apiKey: "AIzaSyAz3lBCcHuyXRPkts3gzTu7gRoJfRJo-SE",
+    authDomain: "app-leac.firebaseapp.com",
+    projectId: "app-leac",
+    storageBucket: "app-leac.firebasestorage.app",
+    messagingSenderId: "924562877582",
+    appId: "1:924562877582:web:0eb6eed5fa74f77c83eddf"
+  };
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+  const auth = firebase.auth();
 
   // ── DATE ──
   const now = new Date();
   const DAYS = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
   const MONTHS = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
-  document.getElementById('today-date').textContent =
-    DAYS[now.getDay()] + ' ' + now.getDate() + ' ' + MONTHS[now.getMonth()] + ' ' + now.getFullYear();
+  document.getElementById('today-date').textContent = DAYS[now.getDay()] + ' ' + now.getDate() + ' ' + MONTHS[now.getMonth()] + ' ' + now.getFullYear();
   const fd = document.getElementById('f-date');
   fd.value = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
 
   // ── NAVIGATION ──
   let cur = 'accueil';
-  let respMode = false;
   function navigate(page) {
     if (page === cur) return;
     const prev = document.getElementById('page-' + cur);
     prev.classList.add('exit');
     setTimeout(() => prev.classList.remove('active','exit'), 300);
     setTimeout(() => document.getElementById('page-' + page).classList.add('active'), 50);
-    document.getElementById('tab-' + cur).classList.remove('active');
-    document.getElementById('tab-' + page).classList.add('active');
+    const pt = document.getElementById('tab-' + cur);
+    const nt = document.getElementById('tab-' + page);
+    if (pt) pt.classList.remove('active');
+    if (nt) nt.classList.add('active');
     cur = page;
     if (page === 'responsable') loadFiches();
   }
 
-
-  function toggleResponsable() {
-    respMode = !respMode;
-    const btn = document.getElementById('resp-toggle-btn');
+  // ── AUTH STATE ──
+  auth.onAuthStateChanged(user => {
     const tab = document.getElementById('tab-responsable');
-    if (respMode) {
+    const btn = document.getElementById('resp-toggle-btn');
+    if (user) {
       tab.style.display = 'flex';
       btn.classList.add('active-mode');
-      navigate('responsable');
+      btn.textContent = '👔 Connecté';
+      // Mettre à jour les stats publiques
+      loadStats();
     } else {
       tab.style.display = 'none';
       btn.classList.remove('active-mode');
-      if (cur === 'responsable') navigate('accueil');
+      btn.textContent = '👔 Responsable';
+      if (cur === 'responsable' || cur === 'login') navigate('accueil');
+    }
+  });
+
+  function toggleResponsable() {
+    if (auth.currentUser) {
+      navigate('responsable');
+    } else {
+      navigate('login');
     }
   }
 
   // ── TOAST ──
-  function showToast(msg, type='success') {
+  function showToast(msg, type) {
     const t = document.getElementById('toast');
     t.textContent = msg;
-    t.className = 'toast ' + type;
+    t.className = 'toast ' + (type || 'success');
     t.classList.add('show');
     setTimeout(() => t.classList.remove('show'), 3500);
   }
 
-  // ── DATA CACHE ──
-  let allFiches = [];
+  // ── LOGIN ──
+  function doLogin() {
+    const email = document.getElementById('login-email').value.trim();
+    const pass = document.getElementById('login-pass').value;
+    const btn = document.getElementById('login-btn');
+    const err = document.getElementById('login-error');
+    err.classList.remove('show');
+    if (!email || !pass) { err.textContent = 'Veuillez remplir tous les champs.'; err.classList.add('show'); return; }
+    btn.disabled = true;
+    btn.textContent = '⏳ Connexion…';
+    auth.signInWithEmailAndPassword(email, pass)
+      .then(() => { navigate('responsable'); })
+      .catch(() => { err.classList.add('show'); err.textContent = 'Email ou mot de passe incorrect.'; })
+      .finally(() => { btn.disabled = false; btn.textContent = 'Se connecter'; });
+  }
 
-  // ── SEND FORM ──
-  document.getElementById('submit-btn').onclick = async function() {
-    const fields = ['f-nom','f-prenom','f-date','f-fournisseur','f-temps','f-cause'];
+  function doLogout() {
+    auth.signOut().then(() => showToast('Déconnecté', 'success'));
+  }
+
+  // ── SEND FICHE ──
+  document.getElementById('submit-btn').onclick = function() {
+    const ids = ['f-nom','f-prenom','f-date','f-fournisseur','f-temps','f-cause'];
     let ok = true;
-    fields.forEach(id => {
+    ids.forEach(id => {
       const el = document.getElementById(id);
       if (!el.value.trim()) {
         ok = false;
         el.style.outline = '2px solid #ff5555';
-        el.style.borderRadius = '4px';
         setTimeout(() => { el.style.outline = ''; }, 2500);
       }
     });
@@ -455,165 +438,123 @@
     btn.disabled = true;
     btn.textContent = '⏳ Envoi en cours…';
 
-    const data = {
+    db.collection('fiches').add({
       nom: document.getElementById('f-nom').value.trim(),
       prenom: document.getElementById('f-prenom').value.trim(),
       date: document.getElementById('f-date').value,
       fournisseur: document.getElementById('f-fournisseur').value.trim(),
       temps: document.getElementById('f-temps').value,
-      cause: document.getElementById('f-cause').value.trim()
-    };
-
-    try {
-      await fetch(SHEET_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
+      cause: document.getElementById('f-cause').value.trim(),
+      envoi: firebase.firestore.FieldValue.serverTimestamp()
+    })
+    .then(() => {
       showToast('✓ Fiche envoyée et enregistrée !', 'success');
       document.getElementById('entretien-form').reset();
       fd.value = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
-      // Add to local cache for immediate display
-      allFiches.unshift({ ...data, envoi: new Date().toLocaleString('fr-FR') });
-      renderRecent();
-    } catch(e) {
-      showToast('❌ Erreur d\'envoi — vérifiez votre connexion', 'error');
-    } finally {
-      btn.disabled = false;
-      btn.textContent = '✓ Envoyer la fiche';
-    }
+      loadStats();
+    })
+    .catch(e => { showToast('❌ Erreur : ' + e.message, 'error'); })
+    .finally(() => { btn.disabled = false; btn.textContent = '✓ Envoyer la fiche'; });
   };
 
   document.getElementById('reset-btn').onclick = () => {
-    setTimeout(() => {
-      fd.value = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
-    }, 10);
+    setTimeout(() => { fd.value = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0'); }, 10);
   };
 
-  // ── LOAD FICHES (GET from Sheet) ──
-  async function loadFiches() {
+  // ── STATS (publiques, sans auth) ──
+  function loadStats() {
+    db.collection('fiches').get().then(snap => {
+      const total = snap.size;
+      const mois = snap.docs.filter(d => {
+        const date = d.data().date;
+        if (!date) return false;
+        const d2 = new Date(date);
+        return d2.getMonth() === now.getMonth() && d2.getFullYear() === now.getFullYear();
+      }).length;
+      document.getElementById('stat-total').textContent = total;
+      document.getElementById('stat-mois').textContent = mois;
+    }).catch(() => {});
+  }
+  loadStats();
+
+  // ── LOAD FICHES (responsable) ──
+  let allFiches = [];
+  function loadFiches() {
     document.getElementById('fiches-list').innerHTML = '<div class="loading-state"><div class="spinner"></div><div class="loading-text">Chargement…</div></div>';
-    try {
-      const res = await fetch(SHEET_URL + '?action=get');
-      const json = await res.json();
-      allFiches = json.data || [];
-      renderFiches();
-      renderRecent();
-      updateStats();
-    } catch(e) {
-      document.getElementById('fiches-list').innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-text">Impossible de charger</div><div class="empty-sub">Vérifiez votre connexion</div></div>';
-    }
-  }
-
-  function renderRecent() {
-    const list = document.getElementById('recent-list');
-    if (!allFiches.length) {
-      list.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">Aucune fiche pour l\'instant</div><div class="empty-sub">Créez votre première fiche d\'entretien</div></div>';
-      return;
-    }
-    const icons = ['🔧','⚙️','🛞','🔩','⛽','🔋'];
-    list.innerHTML = allFiches.slice(0,3).map((f, i) => `
-      <div class="recent-item">
-        <div class="recent-icon">${icons[i % icons.length]}</div>
-        <div class="recent-info">
-          <div class="recent-name">${f.prenom} ${f.nom}</div>
-          <div class="recent-meta">${f.date ? formatDate(f.date) : '—'} · ${f.temps || '—'} · ${f.fournisseur || '—'}</div>
-        </div>
-        <span class="recent-badge badge-done">✓</span>
-      </div>
-    `).join('');
-  }
-
-  function updateStats() {
-    document.getElementById('stat-total').textContent = allFiches.length;
-    const mois = allFiches.filter(f => {
-      if (!f.date) return false;
-      const d = new Date(f.date);
-      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
-    }).length;
-    document.getElementById('stat-mois').textContent = mois;
+    db.collection('fiches').orderBy('envoi', 'desc').get()
+      .then(snap => {
+        allFiches = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        renderFiches();
+        document.getElementById('stat-total').textContent = allFiches.length;
+      })
+      .catch(e => {
+        document.getElementById('fiches-list').innerHTML = '<div class="empty-state"><div class="empty-icon">⚠️</div><div class="empty-text">Erreur de chargement</div><div class="empty-sub">' + e.message + '</div></div>';
+      });
   }
 
   function renderFiches() {
     const list = document.getElementById('fiches-list');
     if (!allFiches.length) {
-      list.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">Aucune fiche enregistrée</div><div class="empty-sub">Les fiches envoyées par les salariés apparaîtront ici</div></div>';
+      list.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">Aucune fiche</div><div class="empty-sub">Les fiches envoyées apparaîtront ici</div></div>';
       return;
     }
     list.innerHTML = allFiches.map((f, i) => `
       <div class="fiche-card" id="fiche-${i}">
         <div class="fiche-card-head" onclick="toggleFiche(${i})">
-          <div class="fiche-info">
+          <div>
             <div class="fiche-name">${f.prenom || ''} ${f.nom || ''}</div>
             <div class="fiche-meta">${f.date ? formatDate(f.date) : '—'} · ${f.fournisseur || '—'}</div>
           </div>
           <div class="fiche-actions">
-            <button class="fiche-pdf-btn" onclick="event.stopPropagation(); exportPDF(${i})">⬇ PDF</button>
+            <button class="fiche-pdf-btn" onclick="event.stopPropagation();exportPDF(${i})">⬇ PDF</button>
             <span class="fiche-chevron">▶</span>
           </div>
         </div>
         <div class="fiche-detail">
           <div class="fiche-detail-inner">
-            <div class="fiche-field"><div class="fiche-field-label">Nom</div><div class="fiche-field-value">${f.nom || '—'}</div></div>
-            <div class="fiche-field"><div class="fiche-field-label">Prénom</div><div class="fiche-field-value">${f.prenom || '—'}</div></div>
-            <div class="fiche-field"><div class="fiche-field-label">Date</div><div class="fiche-field-value">${f.date ? formatDate(f.date) : '—'}</div></div>
-            <div class="fiche-field"><div class="fiche-field-label">Temps passé</div><div class="fiche-field-value">${f.temps || '—'}</div></div>
-            <div class="fiche-field"><div class="fiche-field-label">Fournisseur</div><div class="fiche-field-value">${f.fournisseur || '—'}</div></div>
-            <div class="fiche-field full"><div class="fiche-field-label">Cause</div><div class="fiche-field-value">${f.cause || '—'}</div></div>
+            <div><div class="fiche-field-label">Nom</div><div class="fiche-field-value">${f.nom||'—'}</div></div>
+            <div><div class="fiche-field-label">Prénom</div><div class="fiche-field-value">${f.prenom||'—'}</div></div>
+            <div><div class="fiche-field-label">Date</div><div class="fiche-field-value">${f.date?formatDate(f.date):'—'}</div></div>
+            <div><div class="fiche-field-label">Temps</div><div class="fiche-field-value">${f.temps||'—'}</div></div>
+            <div><div class="fiche-field-label">Fournisseur</div><div class="fiche-field-value">${f.fournisseur||'—'}</div></div>
+            <div class="fiche-field-full"><div class="fiche-field-label">Cause</div><div class="fiche-field-value">${f.cause||'—'}</div></div>
           </div>
         </div>
-      </div>
-    `).join('');
+      </div>`).join('');
   }
 
-  function toggleFiche(i) {
-    document.getElementById('fiche-' + i).classList.toggle('open');
-  }
+  function toggleFiche(i) { document.getElementById('fiche-' + i).classList.toggle('open'); }
 
-  // ── EXPORT PDF ──
   function exportPDF(i) {
     const f = allFiches[i];
     document.getElementById('pdf-num').textContent = String(i+1).padStart(4,'0');
-    document.getElementById('pdf-nom').textContent = f.nom || '—';
-    document.getElementById('pdf-prenom').textContent = f.prenom || '—';
-    document.getElementById('pdf-date').textContent = f.date ? formatDate(f.date) : '—';
-    document.getElementById('pdf-fournisseur').textContent = f.fournisseur || '—';
-    document.getElementById('pdf-temps').textContent = f.temps || '—';
-    document.getElementById('pdf-cause').textContent = f.cause || '—';
-    document.getElementById('pdf-envoi').textContent = f.envoi || '—';
-    const tpl = document.getElementById('pdf-template');
-    tpl.style.display = 'block';
-    setTimeout(() => { window.print(); tpl.style.display = 'none'; }, 100);
+    document.getElementById('pdf-nom').textContent = f.nom||'—';
+    document.getElementById('pdf-prenom').textContent = f.prenom||'—';
+    document.getElementById('pdf-date').textContent = f.date?formatDate(f.date):'—';
+    document.getElementById('pdf-fournisseur').textContent = f.fournisseur||'—';
+    document.getElementById('pdf-temps').textContent = f.temps||'—';
+    document.getElementById('pdf-cause').textContent = f.cause||'—';
+    document.getElementById('pdf-envoi').textContent = f.envoi?.toDate ? f.envoi.toDate().toLocaleString('fr-FR') : '—';
+    document.getElementById('pdf-template').style.display = 'block';
+    setTimeout(() => { window.print(); document.getElementById('pdf-template').style.display = 'none'; }, 100);
   }
 
-  // ── EXPORT CSV ──
-  function exportAllCSV() {
+  function exportCSV() {
     if (!allFiches.length) { showToast('Aucune fiche à exporter', 'error'); return; }
-    const headers = ['Nom','Prénom','Date','Fournisseur','Temps passé','Cause','Envoyé le'];
-    const rows = allFiches.map(f => [
-      f.nom, f.prenom, f.date, f.fournisseur, f.temps,
-      (f.cause || '').replace(/"/g,'""'), f.envoi || ''
-    ].map(v => `"${v || ''}"`).join(','));
-    const csv = [headers.join(','), ...rows].join('\n');
-    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const csv = ['Nom,Prénom,Date,Fournisseur,Temps,Cause',
+      ...allFiches.map(f => [f.nom,f.prenom,f.date,f.fournisseur,f.temps,(f.cause||'').replace(/"/g,'""')].map(v=>`"${v||''}"`).join(','))
+    ].join('\n');
     const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
+    a.href = URL.createObjectURL(new Blob(['\uFEFF'+csv], {type:'text/csv;charset=utf-8;'}));
     a.download = 'entretiens-leac-' + new Date().toISOString().slice(0,10) + '.csv';
     a.click();
     showToast('✓ Export CSV téléchargé', 'success');
   }
 
-  // ── FORMAT DATE ──
   function formatDate(d) {
-    if (!d) return '—';
-    const parts = d.split('-');
-    if (parts.length !== 3) return d;
-    return parts[2] + '/' + parts[1] + '/' + parts[0];
+    const p = d.split('-');
+    return p.length===3 ? p[2]+'/'+p[1]+'/'+p[0] : d;
   }
-
-  // ── INIT ──
-  loadFiches();
 </script>
 </body>
 </html>
