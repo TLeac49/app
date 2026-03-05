@@ -1,560 +1,360 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Mon Application GitHub Pages</title>
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Mono:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet"/>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>Transports LEAC°</title>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;900&family=Barlow+Condensed:wght@400;600;700;900&display=swap" rel="stylesheet"/>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
     :root {
-      --bg: #0a0a0f;
-      --surface: #12121a;
-      --border: #22223a;
-      --accent: #7fff6e;
-      --accent2: #6edfff;
-      --text: #e8e8f0;
-      --muted: #6a6a88;
-      --font-display: 'Syne', sans-serif;
-      --font-mono: 'DM Mono', monospace;
+      --bg: #0e0f11;
+      --surface: #16181c;
+      --surface2: #1e2026;
+      --border: #2a2d35;
+      --accent: #e8a020;
+      --accent-dim: rgba(232,160,32,0.12);
+      --accent2: #4a7fff;
+      --text: #f0f1f3;
+      --muted: #7a7f8e;
+      --success: #3ddc84;
+      --font: 'Barlow', sans-serif;
+      --font-cond: 'Barlow Condensed', sans-serif;
+      --radius: 12px;
+      --tab-h: 72px;
     }
+    html, body { height: 100%; overflow: hidden; background: #000; }
+    body { font-family: var(--font); color: var(--text); display: flex; justify-content: center; align-items: center; }
 
-    html { scroll-behavior: smooth; }
-
-    body {
+    .app {
+      width: 100%; max-width: 430px;
+      height: 100vh; max-height: 932px;
       background: var(--bg);
-      color: var(--text);
-      font-family: var(--font-display);
-      min-height: 100vh;
-      overflow-x: hidden;
-      cursor: crosshair;
+      position: relative; overflow: hidden;
+      display: flex; flex-direction: column;
+      box-shadow: 0 0 80px rgba(0,0,0,0.8);
     }
 
-    /* GRID BACKGROUND */
-    body::before {
-      content: '';
-      position: fixed;
-      inset: 0;
-      background-image:
-        linear-gradient(rgba(127,255,110,0.04) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(127,255,110,0.04) 1px, transparent 1px);
-      background-size: 48px 48px;
-      pointer-events: none;
-      z-index: 0;
+    /* STATUS BAR */
+    .status-bar {
+      height: 44px; background: var(--bg);
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 20px; flex-shrink: 0; z-index: 10;
     }
+    .status-time { font-size: 15px; font-weight: 600; }
+    .status-icons { display: flex; align-items: center; gap: 6px; font-size: 12px; }
+    .battery { width: 22px; height: 11px; border: 1.5px solid var(--text); border-radius: 2px; position: relative; display: flex; align-items: center; padding: 2px; }
+    .battery::after { content:''; position: absolute; right: -5px; top: 50%; transform: translateY(-50%); width: 3px; height: 5px; background: var(--text); border-radius: 0 1px 1px 0; }
+    .battery-fill { height: 100%; width: 75%; background: var(--text); border-radius: 1px; }
 
-    /* CURSOR GLOW */
-    .cursor-glow {
-      position: fixed;
-      width: 400px;
-      height: 400px;
-      border-radius: 50%;
-      background: radial-gradient(circle, rgba(127,255,110,0.07) 0%, transparent 70%);
-      transform: translate(-50%, -50%);
-      pointer-events: none;
-      z-index: 1;
-      transition: opacity 0.3s;
-    }
+    /* HEADER */
+    .app-header { background: var(--bg); padding: 4px 20px 16px; flex-shrink: 0; border-bottom: 1px solid var(--border); }
+    .header-top { display: flex; align-items: center; justify-content: space-between; }
+    .logo-text { font-family: var(--font-cond); font-size: 22px; font-weight: 900; letter-spacing: 0.05em; text-transform: uppercase; }
+    .logo-degree { color: var(--accent); }
+    .logo-sub { font-family: var(--font-cond); font-size: 10px; font-weight: 600; color: var(--muted); letter-spacing: 0.2em; text-transform: uppercase; display: block; margin-top: -2px; }
+    .header-avatar { width: 36px; height: 36px; border-radius: 50%; background: var(--surface2); border: 1.5px solid var(--border); display: flex; align-items: center; justify-content: center; font-size: 16px; }
 
-    /* NAVBAR */
-    nav {
-      position: fixed;
-      top: 0; left: 0; right: 0;
-      z-index: 100;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 1.2rem 3rem;
-      border-bottom: 1px solid var(--border);
-      background: rgba(10,10,15,0.85);
-      backdrop-filter: blur(20px);
-    }
+    /* PAGES */
+    .pages { flex: 1; overflow: hidden; position: relative; }
+    .page { position: absolute; inset: 0; overflow-y: auto; padding: 20px; opacity: 0; transform: translateX(30px); transition: opacity 0.28s ease, transform 0.28s ease; pointer-events: none; -webkit-overflow-scrolling: touch; }
+    .page.active { opacity: 1; transform: translateX(0); pointer-events: all; }
+    .page.exit { opacity: 0; transform: translateX(-30px); }
+    .page::-webkit-scrollbar { width: 0; }
 
-    .nav-logo {
-      font-size: 1rem;
-      font-weight: 800;
-      letter-spacing: -0.02em;
-      color: var(--accent);
-      font-family: var(--font-mono);
-    }
-    .nav-logo span { color: var(--muted); }
+    .page-title { font-family: var(--font-cond); font-size: 13px; font-weight: 700; color: var(--muted); letter-spacing: 0.15em; text-transform: uppercase; margin-bottom: 20px; }
 
-    .nav-links { display: flex; gap: 2rem; list-style: none; }
-    .nav-links a {
-      color: var(--muted);
-      text-decoration: none;
-      font-size: 0.85rem;
-      font-family: var(--font-mono);
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      transition: color 0.2s;
-    }
-    .nav-links a:hover { color: var(--accent); }
+    /* WELCOME CARD */
+    .welcome-card { background: linear-gradient(135deg, #1a1c22 0%, #1e2028 100%); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; position: relative; overflow: hidden; }
+    .welcome-card::before { content: ''; position: absolute; top: -30px; right: -30px; width: 120px; height: 120px; border-radius: 50%; background: var(--accent-dim); }
+    .welcome-card::after { content: '🚛'; position: absolute; top: 50%; right: 20px; transform: translateY(-50%); font-size: 42px; opacity: 0.45; }
+    .welcome-label { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+    .welcome-name { font-family: var(--font-cond); font-size: 26px; font-weight: 900; margin-bottom: 8px; }
+    .welcome-date { font-size: 13px; color: var(--accent); font-weight: 500; }
 
-    /* HERO */
-    .hero {
-      position: relative;
-      z-index: 2;
-      min-height: 100vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      padding: 8rem 3rem 4rem;
-      max-width: 1100px;
-      margin: 0 auto;
-    }
+    /* STATS */
+    .stats-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+    .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; }
+    .stat-label { font-size: 11px; color: var(--muted); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 8px; }
+    .stat-value { font-family: var(--font-cond); font-size: 32px; font-weight: 900; line-height: 1; }
+    .stat-value.orange { color: var(--accent); }
+    .stat-value.blue { color: var(--accent2); }
+    .stat-unit { font-size: 12px; color: var(--muted); margin-top: 4px; }
 
-    .hero-tag {
-      font-family: var(--font-mono);
-      font-size: 0.8rem;
-      color: var(--accent);
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      margin-bottom: 1.5rem;
-      opacity: 0;
-      animation: fadeUp 0.6s 0.2s forwards;
-    }
+    /* RECENT */
+    .section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; }
+    .section-name { font-family: var(--font-cond); font-size: 14px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+    .section-action { font-size: 12px; color: var(--accent); font-weight: 600; cursor: pointer; border: none; background: none; padding: 0; }
+    .recent-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; }
+    .recent-item { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px 16px; display: flex; align-items: center; gap: 14px; }
+    .recent-icon { width: 40px; height: 40px; border-radius: 10px; background: var(--accent-dim); border: 1px solid rgba(232,160,32,0.2); display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+    .recent-info { flex: 1; min-width: 0; }
+    .recent-name { font-size: 14px; font-weight: 600; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .recent-meta { font-size: 12px; color: var(--muted); }
+    .recent-badge { font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 20px; flex-shrink: 0; }
+    .badge-done { background: rgba(61,220,132,0.12); color: var(--success); }
+    .badge-pending { background: rgba(232,160,32,0.12); color: var(--accent); }
 
-    .hero-title {
-      font-size: clamp(3.5rem, 8vw, 7rem);
-      font-weight: 800;
-      line-height: 0.95;
-      letter-spacing: -0.04em;
-      margin-bottom: 2rem;
-      opacity: 0;
-      animation: fadeUp 0.7s 0.4s forwards;
-    }
+    /* QUICK BTN */
+    .quick-btn { width: 100%; background: var(--accent); color: #0e0f11; border: none; border-radius: var(--radius); padding: 16px; font-family: var(--font-cond); font-size: 16px; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 20px; transition: opacity 0.15s; }
+    .quick-btn:active { opacity: 0.8; }
 
-    .hero-title .line2 {
-      color: transparent;
-      -webkit-text-stroke: 1px var(--border);
-      transition: -webkit-text-stroke 0.3s;
-    }
-    .hero-title:hover .line2 { -webkit-text-stroke-color: var(--accent2); }
+    /* FORM */
+    .form-header { margin-bottom: 24px; }
+    .form-tag { display: inline-flex; align-items: center; gap: 6px; background: var(--accent-dim); border: 1px solid rgba(232,160,32,0.25); color: var(--accent); font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 4px 10px; border-radius: 20px; margin-bottom: 12px; }
+    .form-title { font-family: var(--font-cond); font-size: 28px; font-weight: 900; letter-spacing: -0.01em; margin-bottom: 4px; }
+    .form-subtitle { font-size: 13px; color: var(--muted); }
+    .form-section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 12px; }
+    .form-section-label { font-family: var(--font-cond); font-size: 11px; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); padding: 12px 16px 8px; border-bottom: 1px solid var(--border); background: var(--surface2); }
+    .field-row { padding: 0 16px; border-bottom: 1px solid var(--border); }
+    .field-row:last-child { border-bottom: none; }
+    .field-row:focus-within { background: rgba(232,160,32,0.03); }
+    .field-label { font-size: 11px; font-weight: 600; color: var(--muted); letter-spacing: 0.08em; text-transform: uppercase; padding-top: 12px; display: block; margin-bottom: 4px; }
+    .field-row:focus-within .field-label { color: var(--accent); }
+    .field-input { width: 100%; background: transparent; border: none; outline: none; font-family: var(--font); font-size: 15px; font-weight: 500; color: var(--text); padding: 0 0 12px; caret-color: var(--accent); }
+    .field-input::placeholder { color: var(--border); }
+    select.field-input { appearance: none; -webkit-appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%237a7f8e' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 0 center; padding-right: 20px; cursor: pointer; }
+    textarea.field-input { resize: none; min-height: 80px; line-height: 1.5; }
+    .submit-btn { width: 100%; background: var(--accent); color: #0e0f11; border: none; border-radius: var(--radius); padding: 18px; font-family: var(--font-cond); font-size: 17px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 8px; transition: opacity 0.15s; }
+    .submit-btn:active { opacity: 0.8; }
+    .reset-btn { width: 100%; background: transparent; color: var(--muted); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px; font-family: var(--font-cond); font-size: 14px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; margin-bottom: 20px; }
+    .reset-btn:active { border-color: var(--muted); color: var(--text); }
 
-    .hero-desc {
-      font-family: var(--font-mono);
-      font-size: 1rem;
-      color: var(--muted);
-      max-width: 480px;
-      line-height: 1.7;
-      margin-bottom: 3rem;
-      opacity: 0;
-      animation: fadeUp 0.7s 0.6s forwards;
-    }
+    /* TOAST */
+    .toast { position: absolute; top: 16px; left: 50%; transform: translateX(-50%) translateY(-80px); background: var(--success); color: #0a1a0f; font-family: var(--font-cond); font-size: 14px; font-weight: 800; letter-spacing: 0.05em; padding: 12px 20px; border-radius: 30px; white-space: nowrap; z-index: 200; transition: transform 0.4s cubic-bezier(0.34,1.56,0.64,1); box-shadow: 0 4px 24px rgba(61,220,132,0.3); }
+    .toast.show { transform: translateX(-50%) translateY(0); }
 
-    .hero-actions {
-      display: flex;
-      gap: 1rem;
-      flex-wrap: wrap;
-      opacity: 0;
-      animation: fadeUp 0.7s 0.8s forwards;
-    }
-
-    .btn {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      padding: 0.85rem 1.8rem;
-      font-family: var(--font-mono);
-      font-size: 0.85rem;
-      letter-spacing: 0.05em;
-      text-transform: uppercase;
-      text-decoration: none;
-      border-radius: 2px;
-      transition: all 0.2s;
-      cursor: pointer;
-      border: none;
-    }
-
-    .btn-primary {
-      background: var(--accent);
-      color: #0a0a0f;
-      font-weight: 500;
-    }
-    .btn-primary:hover { background: #a0ffaa; transform: translateY(-2px); }
-
-    .btn-ghost {
-      background: transparent;
-      color: var(--muted);
-      border: 1px solid var(--border);
-    }
-    .btn-ghost:hover { border-color: var(--accent2); color: var(--accent2); transform: translateY(-2px); }
-
-    /* TICKER */
-    .ticker {
-      position: relative;
-      z-index: 2;
-      border-top: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
-      padding: 1rem 0;
-      overflow: hidden;
-      background: var(--surface);
-    }
-    .ticker-inner {
-      display: flex;
-      gap: 4rem;
-      white-space: nowrap;
-      animation: ticker 18s linear infinite;
-      width: max-content;
-    }
-    .ticker-item {
-      font-family: var(--font-mono);
-      font-size: 0.75rem;
-      color: var(--muted);
-      letter-spacing: 0.1em;
-      text-transform: uppercase;
-    }
-    .ticker-item .dot { color: var(--accent); margin-right: 0.5rem; }
-
-    /* SECTIONS */
-    section {
-      position: relative;
-      z-index: 2;
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 6rem 3rem;
-    }
-
-    .section-label {
-      font-family: var(--font-mono);
-      font-size: 0.75rem;
-      color: var(--accent);
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      margin-bottom: 0.75rem;
-    }
-
-    .section-title {
-      font-size: clamp(2rem, 4vw, 3.5rem);
-      font-weight: 800;
-      letter-spacing: -0.03em;
-      line-height: 1.1;
-      margin-bottom: 3rem;
-    }
-
-    /* CARDS GRID */
-    .cards-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 1px;
-      border: 1px solid var(--border);
-    }
-
-    .card {
-      background: var(--surface);
-      padding: 2rem;
-      border-right: 1px solid var(--border);
-      border-bottom: 1px solid var(--border);
-      transition: background 0.2s;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .card::after {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(135deg, rgba(127,255,110,0.04), transparent);
-      opacity: 0;
-      transition: opacity 0.3s;
-    }
-    .card:hover { background: #15151f; }
-    .card:hover::after { opacity: 1; }
-
-    .card-num {
-      font-family: var(--font-mono);
-      font-size: 0.7rem;
-      color: var(--muted);
-      margin-bottom: 1.2rem;
-    }
-
-    .card-icon {
-      font-size: 1.8rem;
-      margin-bottom: 1rem;
-    }
-
-    .card h3 {
-      font-size: 1.1rem;
-      font-weight: 700;
-      margin-bottom: 0.5rem;
-      letter-spacing: -0.02em;
-    }
-
-    .card p {
-      font-family: var(--font-mono);
-      font-size: 0.82rem;
-      color: var(--muted);
-      line-height: 1.6;
-    }
-
-    /* STEPS */
-    .steps { display: flex; flex-direction: column; gap: 0; }
-
-    .step {
-      display: grid;
-      grid-template-columns: 80px 1fr;
-      gap: 2rem;
-      padding: 2.5rem 0;
-      border-bottom: 1px solid var(--border);
-      align-items: start;
-    }
-    .step:first-child { border-top: 1px solid var(--border); }
-
-    .step-num {
-      font-family: var(--font-mono);
-      font-size: 2.5rem;
-      font-weight: 800;
-      color: var(--border);
-      line-height: 1;
-      transition: color 0.2s;
-    }
-    .step:hover .step-num { color: var(--accent); }
-
-    .step-content h3 {
-      font-size: 1.1rem;
-      font-weight: 700;
-      margin-bottom: 0.5rem;
-    }
-    .step-content p {
-      font-family: var(--font-mono);
-      font-size: 0.82rem;
-      color: var(--muted);
-      line-height: 1.7;
-    }
-
-    .code-block {
-      background: #0d0d14;
-      border: 1px solid var(--border);
-      border-left: 3px solid var(--accent);
-      padding: 0.75rem 1rem;
-      font-family: var(--font-mono);
-      font-size: 0.8rem;
-      color: var(--accent2);
-      margin-top: 0.75rem;
-      border-radius: 2px;
-      overflow-x: auto;
-    }
-
-    /* FOOTER */
-    footer {
-      position: relative;
-      z-index: 2;
-      border-top: 1px solid var(--border);
-      padding: 3rem;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      max-width: 100%;
-    }
-
-    footer p {
-      font-family: var(--font-mono);
-      font-size: 0.78rem;
-      color: var(--muted);
-    }
-
-    footer .gh-link {
-      display: flex;
-      align-items: center;
-      gap: 0.5rem;
-      color: var(--muted);
-      text-decoration: none;
-      font-family: var(--font-mono);
-      font-size: 0.78rem;
-      transition: color 0.2s;
-    }
-    footer .gh-link:hover { color: var(--accent); }
-
-    /* ANIMATIONS */
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(24px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    @keyframes ticker {
-      from { transform: translateX(0); }
-      to   { transform: translateX(-50%); }
-    }
-
-    /* SCROLL REVEAL */
-    .reveal {
-      opacity: 0;
-      transform: translateY(30px);
-      transition: opacity 0.6s, transform 0.6s;
-    }
-    .reveal.visible { opacity: 1; transform: none; }
-
-    @media (max-width: 640px) {
-      nav { padding: 1rem 1.5rem; }
-      .nav-links { display: none; }
-      .hero { padding: 7rem 1.5rem 3rem; }
-      section { padding: 4rem 1.5rem; }
-      footer { flex-direction: column; gap: 1rem; text-align: center; }
-    }
+    /* TAB BAR */
+    .tab-bar { height: var(--tab-h); background: var(--surface); border-top: 1px solid var(--border); display: flex; flex-shrink: 0; z-index: 10; }
+    .tab-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; cursor: pointer; border: none; background: transparent; padding: 0; position: relative; transition: opacity 0.15s; }
+    .tab-item:active { opacity: 0.7; }
+    .tab-icon { font-size: 22px; line-height: 1; transition: transform 0.2s; }
+    .tab-label { font-family: var(--font-cond); font-size: 10px; font-weight: 700; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); transition: color 0.2s; }
+    .tab-item.active .tab-label { color: var(--accent); }
+    .tab-item.active .tab-icon { transform: translateY(-2px); }
+    .tab-indicator { position: absolute; top: 0; width: 32px; height: 2px; background: var(--accent); border-radius: 0 0 2px 2px; opacity: 0; transition: opacity 0.2s; }
+    .tab-item.active .tab-indicator { opacity: 1; }
   </style>
 </head>
 <body>
+<div class="app">
 
-<div class="cursor-glow" id="glow"></div>
+  <div class="toast" id="toast">✓ Fiche envoyée avec succès</div>
 
-<!-- NAV -->
-<nav>
-  <div class="nav-logo"><span>~/</span>monprojet</div>
-  <ul class="nav-links">
-    <li><a href="#features">Features</a></li>
-    <li><a href="#deploy">Déploiement</a></li>
-    <li><a href="https://github.com" target="_blank">GitHub ↗</a></li>
-  </ul>
-</nav>
+  <div class="status-bar">
+    <span class="status-time" id="clock">09:41</span>
+    <div class="status-icons">
+      <span>▋▋▋</span>
+      <span style="font-size:11px;">WiFi</span>
+      <div class="battery"><div class="battery-fill"></div></div>
+    </div>
+  </div>
 
-<!-- HERO -->
-<div class="hero">
-  <div class="hero-tag">// Déployé sur GitHub Pages</div>
-  <h1 class="hero-title">
-    Mon<br>
-    <span class="line2">Application</span><br>
-    Web.
-  </h1>
-  <p class="hero-desc">
-    Une application moderne, rapide et élégante —<br>hébergée gratuitement sur GitHub Pages.
-  </p>
-  <div class="hero-actions">
-    <a href="#deploy" class="btn btn-primary">↓ Guide de déploiement</a>
-    <a href="https://github.com" target="_blank" class="btn btn-ghost">Voir sur GitHub ↗</a>
+  <div class="app-header">
+    <div class="header-top">
+      <div>
+        <span class="logo-text">Transports LEAC<span class="logo-degree">°</span></span>
+        <span class="logo-sub">Gestion flotte &amp; maintenance</span>
+      </div>
+      <div class="header-avatar">👤</div>
+    </div>
+  </div>
+
+  <div class="pages">
+
+    <!-- ACCUEIL -->
+    <div class="page active" id="page-accueil">
+      <div class="page-title">Tableau de bord</div>
+
+      <div class="welcome-card">
+        <div class="welcome-label">Bonjour,</div>
+        <div class="welcome-name">Salarié LEAC°</div>
+        <div class="welcome-date" id="today-date">—</div>
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-card">
+          <div class="stat-label">Ce mois</div>
+          <div class="stat-value orange">12</div>
+          <div class="stat-unit">entretiens effectués</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">En attente</div>
+          <div class="stat-value blue">3</div>
+          <div class="stat-unit">fiches à valider</div>
+        </div>
+      </div>
+
+      <div class="section-head">
+        <span class="section-name">Récents</span>
+        <button class="section-action">Voir tout</button>
+      </div>
+
+      <div class="recent-list">
+        <div class="recent-item">
+          <div class="recent-icon">🔧</div>
+          <div class="recent-info">
+            <div class="recent-name">Semi 38T — Plaquettes freins</div>
+            <div class="recent-meta">Martin Dupont · 3h · Renault Trucks</div>
+          </div>
+          <span class="recent-badge badge-done">Fait</span>
+        </div>
+        <div class="recent-item">
+          <div class="recent-icon">⚙️</div>
+          <div class="recent-info">
+            <div class="recent-name">Semi 44T — Vidange moteur</div>
+            <div class="recent-meta">Pierre Lambert · 1h30 · Total Énergie</div>
+          </div>
+          <span class="recent-badge badge-done">Fait</span>
+        </div>
+        <div class="recent-item">
+          <div class="recent-icon">🛞</div>
+          <div class="recent-info">
+            <div class="recent-name">Semi 26T — Remplacement pneus</div>
+            <div class="recent-meta">Jean Moreau · 2h · Bridgestone</div>
+          </div>
+          <span class="recent-badge badge-pending">En cours</span>
+        </div>
+      </div>
+
+      <button class="quick-btn" id="new-btn">
+        <span>+</span> Nouvel entretien
+      </button>
+    </div>
+
+    <!-- ENTRETIEN -->
+    <div class="page" id="page-entretien">
+      <div class="form-header">
+        <div class="form-tag">📋 Semi-remorque</div>
+        <div class="form-title">Fiche entretien</div>
+        <div class="form-subtitle">Récapitulatif entretien pour les semi</div>
+      </div>
+
+      <form id="entretien-form" onsubmit="return false;">
+        <div class="form-section">
+          <div class="form-section-label">Identité du salarié</div>
+          <div class="field-row">
+            <label class="field-label">Nom</label>
+            <input class="field-input" type="text" placeholder="Nom de famille" id="f-nom"/>
+          </div>
+          <div class="field-row">
+            <label class="field-label">Prénom</label>
+            <input class="field-input" type="text" placeholder="Prénom" id="f-prenom"/>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="form-section-label">Informations intervention</div>
+          <div class="field-row">
+            <label class="field-label">Date</label>
+            <input class="field-input" type="date" id="f-date"/>
+          </div>
+          <div class="field-row">
+            <label class="field-label">Fournisseur</label>
+            <input class="field-input" type="text" placeholder="Ex : Renault Trucks, Bridgestone…" id="f-fournisseur"/>
+          </div>
+          <div class="field-row">
+            <label class="field-label">Temps passé</label>
+            <select class="field-input" id="f-temps">
+              <option value="" disabled selected>Sélectionner une durée</option>
+              <option>30 min</option>
+              <option>1h</option>
+              <option>1h30</option>
+              <option>2h</option>
+              <option>2h30</option>
+              <option>3h</option>
+              <option>4h</option>
+              <option>5h</option>
+              <option>6h et +</option>
+              <option>Journée complète</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <div class="form-section-label">Détail de la réparation</div>
+          <div class="field-row">
+            <label class="field-label">Cause de la réparation</label>
+            <textarea class="field-input" placeholder="Décrivez la panne ou la raison de l'entretien…" id="f-cause"></textarea>
+          </div>
+        </div>
+
+        <button type="button" class="submit-btn" id="submit-btn">✓ Envoyer la fiche</button>
+        <button type="reset" class="reset-btn">Effacer le formulaire</button>
+      </form>
+    </div>
+
+  </div>
+
+  <div class="tab-bar">
+    <button class="tab-item active" id="tab-accueil" onclick="navigate('accueil')">
+      <div class="tab-indicator"></div>
+      <span class="tab-icon">🏠</span>
+      <span class="tab-label">Accueil</span>
+    </button>
+    <button class="tab-item" id="tab-entretien" onclick="navigate('entretien')">
+      <div class="tab-indicator"></div>
+      <span class="tab-icon">🔧</span>
+      <span class="tab-label">Entretien</span>
+    </button>
   </div>
 </div>
-
-<!-- TICKER -->
-<div class="ticker">
-  <div class="ticker-inner" id="ticker">
-    <span class="ticker-item"><span class="dot">▸</span>GitHub Pages</span>
-    <span class="ticker-item"><span class="dot">▸</span>HTML / CSS / JS</span>
-    <span class="ticker-item"><span class="dot">▸</span>Déploiement automatique</span>
-    <span class="ticker-item"><span class="dot">▸</span>HTTPS gratuit</span>
-    <span class="ticker-item"><span class="dot">▸</span>Domaine personnalisé</span>
-    <span class="ticker-item"><span class="dot">▸</span>Open Source</span>
-    <span class="ticker-item"><span class="dot">▸</span>GitHub Actions CI/CD</span>
-    <span class="ticker-item"><span class="dot">▸</span>GitHub Pages</span>
-    <span class="ticker-item"><span class="dot">▸</span>HTML / CSS / JS</span>
-    <span class="ticker-item"><span class="dot">▸</span>Déploiement automatique</span>
-    <span class="ticker-item"><span class="dot">▸</span>HTTPS gratuit</span>
-    <span class="ticker-item"><span class="dot">▸</span>Domaine personnalisé</span>
-    <span class="ticker-item"><span class="dot">▸</span>Open Source</span>
-    <span class="ticker-item"><span class="dot">▸</span>GitHub Actions CI/CD</span>
-  </div>
-</div>
-
-<!-- FEATURES -->
-<section id="features">
-  <div class="reveal">
-    <div class="section-label">// 01 — Fonctionnalités</div>
-    <h2 class="section-title">Pourquoi GitHub Pages ?</h2>
-  </div>
-  <div class="cards-grid reveal">
-    <div class="card">
-      <div class="card-num">01</div>
-      <div class="card-icon">⚡</div>
-      <h3>Hébergement gratuit</h3>
-      <p>GitHub Pages héberge votre site statique gratuitement, avec un domaine <code>username.github.io</code>.</p>
-    </div>
-    <div class="card">
-      <div class="card-num">02</div>
-      <div class="card-icon">🔒</div>
-      <h3>HTTPS automatique</h3>
-      <p>Certificat SSL/TLS généré automatiquement. Votre site est sécurisé dès le premier déploiement.</p>
-    </div>
-    <div class="card">
-      <div class="card-num">03</div>
-      <div class="card-icon">🔄</div>
-      <h3>CI/CD intégré</h3>
-      <p>Chaque <code>git push</code> sur <code>main</code> déclenche un déploiement automatique via GitHub Actions.</p>
-    </div>
-    <div class="card">
-      <div class="card-num">04</div>
-      <div class="card-icon">🌐</div>
-      <h3>Domaine custom</h3>
-      <p>Branchez votre propre domaine (ex: <code>monsite.fr</code>) en quelques minutes depuis les Settings.</p>
-    </div>
-  </div>
-</section>
-
-<!-- DEPLOY STEPS -->
-<section id="deploy">
-  <div class="reveal">
-    <div class="section-label">// 02 — Déploiement</div>
-    <h2 class="section-title">Mettre en ligne<br>en 5 étapes.</h2>
-  </div>
-  <div class="steps reveal">
-    <div class="step">
-      <div class="step-num">01</div>
-      <div class="step-content">
-        <h3>Créer un dépôt GitHub</h3>
-        <p>Créez un nouveau repo public sur github.com. Nommez-le <code>username.github.io</code> pour un site principal, ou n'importe quel nom pour un sous-répertoire.</p>
-      </div>
-    </div>
-    <div class="step">
-      <div class="step-num">02</div>
-      <div class="step-content">
-        <h3>Initialiser et pousser votre code</h3>
-        <p>Initialisez Git dans votre dossier local, ajoutez le remote et poussez votre branche <code>main</code>.</p>
-        <div class="code-block">git init<br>git add .<br>git commit -m "initial commit"<br>git remote add origin https://github.com/user/repo.git<br>git push -u origin main</div>
-      </div>
-    </div>
-    <div class="step">
-      <div class="step-num">03</div>
-      <div class="step-content">
-        <h3>Activer GitHub Pages</h3>
-        <p>Dans les <strong>Settings</strong> de votre repo → section <strong>Pages</strong> → Source : sélectionnez la branche <code>main</code> et le dossier <code>/ (root)</code> ou <code>/docs</code>.</p>
-      </div>
-    </div>
-    <div class="step">
-      <div class="step-num">04</div>
-      <div class="step-content">
-        <h3>(Optionnel) GitHub Actions pour React/Vue</h3>
-        <p>Si vous utilisez un framework avec un build step, créez un fichier workflow pour automatiser le build et le déploiement.</p>
-        <div class="code-block"># .github/workflows/deploy.yml<br>on: push<br>  branches: [main]<br>jobs:<br>  deploy:<br>    runs-on: ubuntu-latest<br>    steps:<br>      - uses: actions/checkout@v3<br>      - run: npm install && npm run build<br>      - uses: peaceiris/actions-gh-pages@v3<br>        with:<br>          github_token: ${{ secrets.GITHUB_TOKEN }}<br>          publish_dir: ./dist</div>
-      </div>
-    </div>
-    <div class="step">
-      <div class="step-num">05</div>
-      <div class="step-content">
-        <h3>Votre site est en ligne ! 🎉</h3>
-        <p>Après quelques secondes, votre application est accessible à l'adresse <code>https://username.github.io/repo-name</code>. Chaque nouveau push mettra à jour le site automatiquement.</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- FOOTER -->
-<footer>
-  <p>© 2026 — Mon Application · Déployé sur GitHub Pages</p>
-  <a href="https://github.com" target="_blank" class="gh-link">
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
-    Voir sur GitHub
-  </a>
-</footer>
 
 <script>
-  // Cursor glow
-  const glow = document.getElementById('glow');
-  document.addEventListener('mousemove', e => {
-    glow.style.left = e.clientX + 'px';
-    glow.style.top = e.clientY + 'px';
-  });
+  // Clock
+  function tick() {
+    const n = new Date();
+    document.getElementById('clock').textContent =
+      String(n.getHours()).padStart(2,'0') + ':' + String(n.getMinutes()).padStart(2,'0');
+  }
+  tick(); setInterval(tick, 10000);
 
-  // Scroll reveal
-  const reveals = document.querySelectorAll('.reveal');
-  const obs = new IntersectionObserver((entries) => {
-    entries.forEach((e, i) => {
-      if (e.isIntersecting) {
-        setTimeout(() => e.target.classList.add('visible'), i * 100);
-        obs.unobserve(e.target);
-      }
+  // Date
+  const now = new Date();
+  const DAYS = ['Dimanche','Lundi','Mardi','Mercredi','Jeudi','Vendredi','Samedi'];
+  const MONTHS = ['janvier','février','mars','avril','mai','juin','juillet','août','septembre','octobre','novembre','décembre'];
+  document.getElementById('today-date').textContent =
+    DAYS[now.getDay()] + ' ' + now.getDate() + ' ' + MONTHS[now.getMonth()] + ' ' + now.getFullYear();
+  const fd = document.getElementById('f-date');
+  fd.value = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
+
+  // Navigation
+  let cur = 'accueil';
+  function navigate(page) {
+    if (page === cur) return;
+    const prev = document.getElementById('page-' + cur);
+    prev.classList.add('exit');
+    setTimeout(() => prev.classList.remove('active','exit'), 300);
+    setTimeout(() => document.getElementById('page-' + page).classList.add('active'), 50);
+    document.getElementById('tab-' + cur).classList.remove('active');
+    document.getElementById('tab-' + page).classList.add('active');
+    cur = page;
+  }
+  document.getElementById('new-btn').onclick = () => navigate('entretien');
+
+  // Toast
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  // Submit
+  document.getElementById('submit-btn').onclick = function() {
+    const fields = ['f-nom','f-prenom','f-date','f-fournisseur','f-temps','f-cause'];
+    let ok = true;
+    fields.forEach(id => {
+      const el = document.getElementById(id);
+      if (!el.value.trim()) { ok = false; el.style.color = '#ff4444'; setTimeout(()=>el.style.color='',2000); }
     });
-  }, { threshold: 0.1 });
-  reveals.forEach(el => obs.observe(el));
+    if (!ok) { showToast('⚠ Veuillez remplir tous les champs'); return; }
+    showToast('✓ Fiche envoyée avec succès');
+    setTimeout(() => {
+      document.getElementById('entretien-form').reset();
+      fd.value = now.getFullYear() + '-' + String(now.getMonth()+1).padStart(2,'0') + '-' + String(now.getDate()).padStart(2,'0');
+    }, 400);
+  };
 </script>
 </body>
 </html>
