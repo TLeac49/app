@@ -527,16 +527,43 @@
 
   function exportPDF(i) {
     const f = allFiches[i];
-    document.getElementById('pdf-num').textContent = String(i+1).padStart(4,'0');
-    document.getElementById('pdf-nom').textContent = f.nom||'—';
-    document.getElementById('pdf-prenom').textContent = f.prenom||'—';
-    document.getElementById('pdf-date').textContent = f.date?formatDate(f.date):'—';
-    document.getElementById('pdf-fournisseur').textContent = f.fournisseur||'—';
-    document.getElementById('pdf-temps').textContent = f.temps||'—';
-    document.getElementById('pdf-cause').textContent = f.cause||'—';
-    document.getElementById('pdf-envoi').textContent = f.envoi?.toDate ? f.envoi.toDate().toLocaleString('fr-FR') : '—';
-    document.getElementById('pdf-template').style.display = 'block';
-    setTimeout(() => { window.print(); document.getElementById('pdf-template').style.display = 'none'; }, 100);
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+    const bleu = [45,95,196], noir=[20,20,20], gris=[120,120,120], grisClair=[245,245,245];
+    doc.setFont('helvetica','bold'); doc.setFontSize(20); doc.setTextColor(...bleu);
+    doc.text('TRANSPORTS LEAC', 15, 17);
+    doc.setDrawColor(...bleu); doc.setLineWidth(0.8); doc.line(15,22,195,22);
+    doc.setFontSize(9); doc.setTextColor(...gris); doc.setFont('helvetica','normal');
+    doc.text("Fiche d'entretien semi-remorque", 15, 27);
+    doc.text('N ' + String(i+1).padStart(4,'0'), 195, 27, {align:'right'});
+    const fields = [
+      ['Nom', f.nom||'-'], ['Prenom', f.prenom||'-'], ['Date', f.date?formatDate(f.date):'-'],
+      ['Fournisseur', f.fournisseur||'-'], ['Temps passe', f.temps||'-'],
+      ['Envoyee le', f.envoi?.toDate ? f.envoi.toDate().toLocaleString('fr-FR') : '-']
+    ];
+    let y = 35;
+    fields.forEach(([label, value]) => {
+      doc.setFillColor(...grisClair); doc.rect(15,y,55,9,'F');
+      doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(...gris);
+      doc.text(label.toUpperCase(), 18, y+6);
+      doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(...noir);
+      doc.text(String(value), 73, y+6);
+      doc.setDrawColor(220,220,220); doc.line(15,y+9,195,y+9); y += 9;
+    });
+    y += 5;
+    doc.setFillColor(...grisClair); doc.rect(15,y,180,8,'F');
+    doc.setFont('helvetica','bold'); doc.setFontSize(8); doc.setTextColor(...gris);
+    doc.text('CAUSE DE LA REPARATION', 18, y+5.5); y += 10;
+    doc.setFont('helvetica','normal'); doc.setFontSize(10); doc.setTextColor(...noir);
+    const lines = doc.splitTextToSize(f.cause||'-', 170);
+    const ch = Math.max(20, lines.length*6+8);
+    doc.setDrawColor(220,220,220); doc.rect(15,y,180,ch); doc.text(lines,18,y+7); y += ch+12;
+    doc.setDrawColor(...bleu); doc.line(15,y,80,y); doc.line(115,y,180,y);
+    doc.setFontSize(8); doc.setTextColor(...gris);
+    doc.text('Signature salarie', 15, y+5); doc.text('Signature responsable', 115, y+5);
+    doc.setFontSize(8); doc.setTextColor(...gris);
+    doc.text('Transports LEAC - Document genere automatiquement', 105, 285, {align:'center'});
+    doc.save('fiche-' + (f.prenom||'') + '-' + (f.nom||'') + '-' + (f.date||'') + '.pdf');
   }
 
   function exportCSV() {
