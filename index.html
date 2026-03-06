@@ -163,6 +163,13 @@
     .actu-add-btn { width: 100%; background: transparent; border: 1px dashed var(--border); border-radius: var(--radius); padding: 14px; font-family: var(--font-cond); font-size: 13px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); cursor: pointer; margin-top: 4px; margin-bottom: 16px; transition: border-color 0.2s, color 0.2s; display: none; }
     .actu-add-btn:hover { border-color: var(--accent2); color: var(--accent2); }
     .actu-add-btn.visible { display: block; }
+
+    /* FILTER CHIPS */
+    .filter-row { display: flex; gap: 8px; margin-bottom: 16px; overflow-x: auto; padding-bottom: 4px; }
+    .filter-row::-webkit-scrollbar { height: 0; }
+    .filter-chip { flex-shrink: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 20px; padding: 6px 14px; font-family: var(--font-cond); font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); cursor: pointer; transition: all 0.2s; }
+    .filter-chip.active { background: var(--accent-dim); border-color: var(--accent2); color: var(--accent2); }
+    .news-count { font-family: var(--font-cond); font-size: 12px; color: var(--muted); margin-bottom: 12px; letter-spacing: 0.05em; }
     /* MODAL */
     .modal-overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.7); z-index: 300; display: flex; align-items: flex-end; opacity: 0; pointer-events: none; transition: opacity 0.25s; }
     .modal-overlay.show { opacity: 1; pointer-events: all; }
@@ -206,7 +213,10 @@
         <div class="welcome-date" id="today-date">—</div>
       </div>
 
-      <div class="section-head"><span class="section-name">Actualités</span></div>
+      <div class="section-head" style="display:flex;align-items:center;justify-content:space-between;">
+        <span class="section-name">Dernières actualités</span>
+        <button onclick="navigate('actus')" style="background:transparent;border:none;color:var(--accent2);font-family:var(--font-cond);font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;cursor:pointer;">Tout voir →</button>
+      </div>
       <div class="actu-list" id="actu-list">
         <div class="loading-state"><div class="spinner"></div><div class="loading-text">Chargement…</div></div>
       </div>
@@ -247,6 +257,22 @@
         <button type="button" class="submit-btn" id="submit-btn">✓ Envoyer la fiche</button>
         <button type="reset" class="reset-btn" id="reset-btn">Effacer le formulaire</button>
       </form>
+    </div>
+
+    <!-- ACTUALITÉS PAGE -->
+    <div class="page" id="page-actus">
+      <div class="page-title">Actualités</div>
+      <div class="filter-row" id="filter-row">
+        <button class="filter-chip active" data-filter="all" onclick="setFilter('all')">Toutes</button>
+        <button class="filter-chip" data-filter="annonce" onclick="setFilter('annonce')">📢 Annonces</button>
+        <button class="filter-chip" data-filter="meteo" onclick="setFilter('meteo')">🌦 Météo</button>
+        <button class="filter-chip" data-filter="rh" onclick="setFilter('rh')">👥 RH</button>
+      </div>
+      <div class="news-count" id="news-count"></div>
+      <div class="actu-list" id="actu-list-page">
+        <div class="loading-state"><div class="spinner"></div><div class="loading-text">Chargement…</div></div>
+      </div>
+      <button class="actu-add-btn" id="actu-add-btn-page" onclick="openActuModal()">+ Ajouter une actualité</button>
     </div>
 
     <!-- LOGIN -->
@@ -318,6 +344,9 @@
   <div class="tab-bar">
     <button class="tab-item active" id="tab-accueil" onclick="navigate('accueil')">
       <div class="tab-indicator"></div><span class="tab-icon">🏠</span><span class="tab-label">Accueil</span>
+    </button>
+    <button class="tab-item" id="tab-actus" onclick="navigate('actus')">
+      <div class="tab-indicator"></div><span class="tab-icon">📰</span><span class="tab-label">Actualités</span>
     </button>
     <button class="tab-item" id="tab-entretien" onclick="navigate('entretien')">
       <div class="tab-indicator"></div><span class="tab-icon">🔧</span><span class="tab-label">Entretien</span>
@@ -567,23 +596,60 @@
     rh:      { label: '👥 RH & Planning', cls: 'actu-rh', badge: 'badge-rh' }
   };
   let currentActuId = null;
+  let allActus = [];
+  let activeFilter = 'all';
 
   function loadActus() {
     db.collection('actus').orderBy('date','desc').get()
       .then(snap => {
-        const actus = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-        renderActus(actus);
+        allActus = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+        renderActus(allActus);
+        renderActusPage();
       })
-      .catch(() => renderActus([]));
+      .catch(() => { renderActus([]); renderActusPage(); });
+  }
+
+  function setFilter(f) {
+    activeFilter = f;
+    document.querySelectorAll('.filter-chip').forEach(c => c.classList.toggle('active', c.dataset.filter === f));
+    renderActusPage();
+  }
+
+  function renderActusPage() {
+    const list = document.getElementById('actu-list-page');
+    if (!list) return;
+    const isResp = !!firebase.auth().currentUser;
+    const addBtn = document.getElementById('actu-add-btn-page');
+    if (addBtn) addBtn.classList.toggle('visible', isResp);
+    const filtered = activeFilter === 'all' ? allActus : allActus.filter(a => a.type === activeFilter);
+    const countEl = document.getElementById('news-count');
+    if (countEl) countEl.textContent = filtered.length ? filtered.length + ' actualité' + (filtered.length > 1 ? 's' : '') : '';
+    if (!filtered.length) {
+      list.innerHTML = '<div class="empty-state"><div class="empty-icon">📰</div><div class="empty-text">Aucune actualité</div><div class="empty-sub">Rien dans cette catégorie pour l\'instant</div></div>';
+      return;
+    }
+    list.innerHTML = filtered.map(a => {
+      const t = ACTU_TYPES[a.type] || ACTU_TYPES.annonce;
+      const dateStr = a.date?.toDate ? a.date.toDate().toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'}) : '—';
+      return `<div class="actu-card ${t.cls}">
+        ${isResp ? `<button class="actu-manage-btn" onclick="openActuModal('${a.id}','${a.type}',this)">✏️</button>` : ''}
+        <div class="actu-header"><span class="actu-badge ${t.badge}">${t.label}</span><span class="actu-date">${dateStr}</span></div>
+        <div class="actu-title">${a.titre||''}</div>
+        <div class="actu-body">${a.body||''}</div>
+      </div>`;
+    }).join('');
   }
 
   function renderActus(actus) {
     const list = document.getElementById('actu-list');
     const isResp = !!firebase.auth().currentUser;
-    if (!actus.length) {
+    const addBtn = document.getElementById('actu-add-btn');
+    if (addBtn) addBtn.classList.toggle('visible', isResp);
+    const preview = actus.slice(0, 3);
+    if (!preview.length) {
       list.innerHTML = '<div class="empty-state"><div class="empty-icon">📰</div><div class="empty-text">Aucune actualité</div></div>';
     } else {
-      list.innerHTML = actus.map(a => {
+      list.innerHTML = preview.map(a => {
         const t = ACTU_TYPES[a.type] || ACTU_TYPES.annonce;
         const dateStr = a.date?.toDate ? a.date.toDate().toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'}) : '—';
         return `<div class="actu-card ${t.cls}">
@@ -593,6 +659,9 @@
           <div class="actu-body">${a.body||''}</div>
         </div>`;
       }).join('');
+      if (actus.length > 3) {
+        list.innerHTML += `<button onclick="navigate('actus')" style="width:100%;background:transparent;border:1px solid var(--border);border-radius:var(--radius);padding:12px;font-family:var(--font-cond);font-size:13px;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);cursor:pointer;">Voir toutes les actualités (${actus.length}) →</button>`;
+      }
     }
   }
 
@@ -638,6 +707,13 @@
       .then(() => { closeActuModal(); loadActus(); showToast('🗑 Actualité supprimée', 'success'); })
       .catch(e => showToast('Erreur : ' + e.message, 'error'));
   }
+
+  // Refresh page view when navigating to actus tab
+  const _origNav = navigate;
+  navigate = function(page) {
+    _origNav(page);
+    if (page === 'actus') renderActusPage();
+  };
 
   // Close modal on overlay click
   document.getElementById('actu-modal').addEventListener('click', function(e) {
